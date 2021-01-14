@@ -42,3 +42,8 @@ core_copy.lock
 #Sass
 *.css.map
 
+# PyPI Build artifacts
+**/setup/**/build/*
+**/setup/**/dist/*.tar.gz
+**/setup/**/dist/*.whl
+**/setup/**/*.egg-info
