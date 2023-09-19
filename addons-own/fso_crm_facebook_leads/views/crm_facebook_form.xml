@@ -18,6 +18,7 @@
 
             <xpath expr="//group[@string='Tracking Info']" position="before">
                 <group string="Fundraising Studio">
+                    <field name="frst_import_type"/>
                     <field name="force_create_partner"/>
                     <field name="zgruppedetail_id"
                            options="{'no_quick_create': True}"
@@ -51,6 +52,10 @@
                         </p>
                     </div>
                 </group>
+            </xpath>
+
+            <xpath expr="//field[@name='crm_field']" position="after">
+                <field name="zgruppedetail_id"/>
             </xpath>
 
             <xpath expr="//page[@string='Mappings']" position="after">

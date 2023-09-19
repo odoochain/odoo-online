@@ -11,13 +11,31 @@
             <field name="color_name">blue</field>
         </record>
 
+        <!-- Krankenstand -->
         <record model="hr.holidays.status" id="holiday_status_krankenstand">
             <field name="name">Krankenstand</field>
             <field name="code">illness</field>
             <field name="limit">True</field>
             <field name="color_name">red</field>
-        </record>   
-        
+        </record>
+
+        <!-- Zeitausgleich -->
+        <record model="hr.holidays.status" id="holiday_status_zeitausgleich">
+            <field name="name">Zeitausgleich</field>
+            <field name="code">zeitausgleich</field>
+            <field name="limit">False</field>
+            <field name="color_name">blue</field>
+        </record>
+
+        <!-- Home-Office -->
+        <record model="hr.holidays.status" id="holiday_status_homeoffice">
+            <field name="name">Home-Office</field>
+            <field name="code">homeoffice</field>
+            <field name="limit">False</field>
+            <field name="color_name">blue</field>
+        </record>
+
+        <!-- Feiertage -->
         <record model="hr.holidays.status" id="holiday_status_feiertag">
             <field name="name">Feiertage</field>
             <field name="code">legal</field>
@@ -29,6 +47,8 @@
             <field name="timesheet_range">month</field>
             <field name="vacation_type_id" ref="holiday_status_vacation"/>
             <field name="illness_type_id" ref="holiday_status_krankenstand"/>
+            <field name="zeitausgleich_type_id" ref="holiday_status_zeitausgleich"/>
+            <field name="homeoffice_type_id" ref="holiday_status_homeoffice"/>
         </record>
         
 	</data>

@@ -42,7 +42,7 @@ except Exception as e:
 
 
 # Create an adapter for requests that will use TLSv1 (and not sslv2 which is insecure and disabled in most webservers)
-# TODO: Make sure request uses TLSv1 and not SSL v2.x
+# TODO: Make sure request uses TLSv1.2 and not SSL v2.x
 #       https://lukasa.co.uk/2017/02/Configuring_TLS_With_Requests/
 #       https://lukasa.co.uk/2013/01/Choosing_SSL_Version_In_Requests/
 #       https://stackoverflow.com/questions/14102416/python-requests-requests-exceptions-sslerror-errno-8-ssl-c504-eof-occurred
@@ -123,6 +123,8 @@ class EmailTemplate(models.Model):
                                         readonly=True, translate=True,
                                         help="E-Mail body HTML to be used by Fundraising Studio 'Multimailer'!\n"
                                              " - URL's rewritten to FRST-Multimailer format\n")
+
+    fso_email_text = fields.Text(string='E-Mail body FSON TEXT only', readonly=False, translate=True,)
 
     # Compute e-mail screenshot
     screenshot = fields.Binary(string="Screenshot", readonly=True, translate=False)
@@ -220,7 +222,7 @@ class EmailTemplate(models.Model):
                 # ATTENTION: This step will try a lot of requests.packages.urllib3.connectionpool connections
                 #            which may lead to long processing times.
                 email_body_prepared_premailer = PremailerWithTimeout(email_body_prepared,
-                                                                     method='xml',
+                                                                     method='html',
                                                                      base_url=self.get_base_url(),
                                                                      preserve_internal_links=True,
                                                                      keep_style_tags=False,
@@ -239,6 +241,12 @@ class EmailTemplate(models.Model):
                 email_body_css_inline_soup_anchors = email_body_css_inline_soup.find_all('a')
                 for a in email_body_css_inline_soup_anchors:
                     href = a.get('href', '').strip()
+                    # Escaped print fields in href
+                    # e.g.: "%redirect%https://www.test.com%%%spendenlink%%%" will be converted to "%spendenlink%"
+                    escaped_pf = re.findall(ur"%%%(.*?)%%%", href, re.MULTILINE)
+                    if escaped_pf and len(escaped_pf) == 1:
+                        a['href'] = '%'+escaped_pf[0]+'%'
+                        continue
                     # Handle and fix '%open_browser%' FRST-Multimailer links
                     if '%open_browser%' in href:
                         a['href'] = '%open_browser%'
@@ -304,10 +312,12 @@ class EmailTemplate(models.Model):
         if not context_lang:
             logger.warning('screenshot_update() No language set in context! '
                            'Language of request user "%s" with id "%s" is "%s"' % (user.name, user.id, user.lang))
+
+            website = self.env['website'].sudo().browse([1])[0]
+            website_default_lang = website.default_lang_id.code
+
             if user.lang:
                 # Check if the users language is the same as the default website language!
-                website = self.env['website'].sudo().browse([1])[0]
-                website_default_lang = website.default_lang_id.code
                 if website_default_lang != user.lang:
                     logger.warning('screenshot_update() Language "%s" of request user is NOT the '
                                    'default website language "%s"' % (user.lang, website_default_lang))
@@ -316,8 +326,13 @@ class EmailTemplate(models.Model):
                 logger.warning('screenshot_update() switching context language to user language %s' % user.lang)
                 self = self.with_context(lang=user.lang)
 
+            elif website_default_lang:
+                # Update the context to the website default lang
+                logger.warning('screenshot_update() switching context language to website default language %s' % website_default_lang)
+                self = self.with_context(lang=website_default_lang)
+
             else:
-                raise ValidationError("No language in context and no language for the user set!")
+                raise ValidationError("No language set in either context, user or website default.")
 
         # GENERATE THE SCREENSHOT
         # -----------------------

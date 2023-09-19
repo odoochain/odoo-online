@@ -381,12 +381,12 @@ def route(*args, **kwargs):
             setup_db(request.httprequest, db_name)
             authenticated_user = authenticate_token_for_user(user_token)
             namespace = get_namespace_by_name_from_users_namespaces(
-                authenticated_user, ikwargs["namespace"], raise_exception=True
+                authenticated_user, ikwargs["endpoint_namespace"], raise_exception=True
             )
             data_for_log = {
                 "namespace_id": namespace.id,
                 "namespace": namespace.name,
-                "model": ikwargs["model"],
+                "model": ikwargs["endpoint_model"],
                 "namespace_log_request": namespace.log_request,
                 "namespace_log_response": namespace.log_response,
                 "user_id": authenticated_user.id,
@@ -531,6 +531,10 @@ def get_model_openapi_access(namespace, model):
         "out_fields_read_multi": (),
         "out_fields_read_one": (),
         "out_fields_create_one": (),  # FIXME: for what?
+        # By mike start
+        "in_fields_api_create_blacklist": (),
+        "in_fields_api_update_blacklist": (),
+        # By mike end
         "method": {
             "public": {"mode": "", "whitelist": []},
             "private": {"mode": "", "whitelist": []},
@@ -562,6 +566,10 @@ def get_model_openapi_access(namespace, model):
     res["out_fields_read_one"] = openapi_access.read_one_id.export_fields.mapped(
         "name"
     ) or ("id",)
+
+    # By mike: Blacklisted fields for create or write
+    res["in_fields_api_create_blacklist"] = openapi_access.readonly_fields_id.export_fields.mapped("name") or tuple()
+    res["in_fields_api_update_blacklist"] = res["in_fields_api_create_blacklist"]
 
     if openapi_access.public_methods:
         res["method"]["public"]["whitelist"] = openapi_access.public_methods.split()
@@ -741,7 +749,7 @@ def transform_dictfields_to_list_of_tuples(record, dct):
 def wrap__resource__create_one(modelname, context, data, success_code, out_fields):
     """Function to create one record.
 
-    :param str model: The name of the model.
+    :param str modelname: The name of the model.
     :param dict context: TODO
     :param dict data: Data received from the user.
     :param int success_code: The success code.
@@ -1127,6 +1135,20 @@ def method_is_allowed(method, methods_conf, main=False, raise_exception=False):
     return False
 
 
+# By Mike: Check that the fields are allowed
+def fields_are_allowed(method, data, fields_blacklist):
+    blocked = []
+    for k in data.keys():
+        if any(f.startswith(k) for f in fields_blacklist):
+            blocked.append(k)
+    if blocked:
+        error_description = "Fields '%s' are not allowed for method '%s'" % (blocked, method)
+        raise werkzeug.exceptions.HTTPException(
+            response=error_response(401, "Field Permissions", error_description)
+        )
+    return True
+
+
 ###############
 # Pinguin OAS #
 ###############
@@ -1148,7 +1170,7 @@ def get_definition_name(modelname, prefix="", postfix="", splitter="-"):
 
 # Get OAS definitions part for model and nested models
 def get_OAS_definitions_part(
-    model_obj, export_fields_dict, definition_prefix="", definition_postfix=""
+    model_obj, export_fields_dict, definition_prefix="", definition_postfix="",
 ):
     """Recursively gets definition parts of the OAS for model by export fields.
 
@@ -1215,6 +1237,8 @@ def get_OAS_definitions_part(
             elif meta["type"] == "char":
                 field_property.update(type="string")
             elif meta["type"] == "text":
+                field_property.update(type="string")
+            elif meta["type"] == "html":
                 field_property.update(type="string")
             elif meta["type"] == "binary":
                 field_property.update(type="string", format="binary")

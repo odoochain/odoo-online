@@ -18,6 +18,7 @@ class CrmLeadSosync(models.Model):
     contact_birthdate_web = fields.Date(sosync="True")
     contact_newsletter_web = fields.Boolean(sosync="True")
     contact_title_web = fields.Char(sosync="True")
+    contact_gender = fields.Char(sosync="True")
     title = fields.Many2one(sosync="True")
     title_action = fields.Char(sosync="True")
     function = fields.Char(sosync="True")
@@ -54,3 +55,5 @@ class CrmLeadSosync(models.Model):
     payment_mode = fields.Many2one(sosync="True")
 
     type = fields.Selection(sosync="True")
+
+    frst_import_type = fields.Selection(sosync="True")

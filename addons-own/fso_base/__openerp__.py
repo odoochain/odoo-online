@@ -102,12 +102,17 @@ TODO (must be done manually right now):
         'mail_delete_sent_by_footer',
         #'smile_web_search_range', # DISABLED because of JS View errors in Backend
         #'smile_web_search_timedelta', Disabled because of ParseError: "External ID not found in the system: web.assets_backend" while parsing None:5, near <data inherit_id="web.assets_backend">
+        'base_user_role',
+        #'base_export_manager',     # DISABLED! Prevents restore of bird db! no colum .id in survey.survey ?!?!?
+        'base_concurrency',
+        'web_dashboard_open_action',
         # ---
         # Default addons-own (not FS-Online specific)
         # ---
         'mail_follower_control',
         'mail_global_bcc',
         'mail_delete_access_link_portal',
+        'fso_mail_message_subtypes',
         'partner_firstname_lastname',
         'partner_fullhierarchy',
         'auth_doubleoptin',
@@ -122,6 +127,9 @@ TODO (must be done manually right now):
         # We may remove this again in the future to make it an optional addon
         'need_action_menu_disabled',
         'fso_gdpr',
+        'fso_sosync_partner_security',
+        'fso_frst_xbankverbindung',
+        'fso_frst_xbankverbindung_payment',
     ],
     'data': [
         #
@@ -131,6 +139,7 @@ TODO (must be done manually right now):
         #
         'data/instance_system_user_group.xml',
         'security/ir.model.access.csv',
+        'security/email_templates_security.xml',
         #
         'views/templates_backend_css.xml',
         'views/res_company.xml',

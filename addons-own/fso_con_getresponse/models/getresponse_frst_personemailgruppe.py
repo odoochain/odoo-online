@@ -91,6 +91,8 @@ class GetResponseContact(models.Model):
         string='Last synchronization data to compare',
         readonly=True)
 
+    # log = fields.Text(string="Log", readonly=True)
+
     active = fields.Boolean(string="Active", default=True)
 
     # ATTENTION: !!! THE 'getresponse_uniq' CONSTRAIN MUST EXISTS FOR EVERY BINDING MODEL !!!
@@ -119,6 +121,24 @@ class GetResponseContact(models.Model):
         for binding in self:
             if binding.getresponse_id:
                 import_record(session, binding._name, binding.backend_id.id, binding.getresponse_id)
+
+    # -------------------
+    # VIEW ACTION BUTTONS
+    # -------------------
+    @api.multi
+    def button_open_getresponse_jobs(self):
+        assert self.ensure_one(), "Please select one Contact Binding only!"
+        # HINT: This will not overwrite the domain of the view because we do not use action.domain =
+        #       Maybe we should do a deepcopy and a convert to an dict to make this more obvious ;)
+        action = self.env['ir.actions.act_window'].for_xml_id('connector', 'action_queue_job')
+        action['domain'] = [('binding_id', '=', self.id),
+                            ('binding_model', '=', self._name),
+                            '|',
+                                ('active', '=', False),
+                                ('active', '=', True)
+                            ]
+        action['context'] = {}
+        return action
 
     # ------
     # WIZARD
@@ -156,6 +176,8 @@ class ContactBinder(GetResponseBinder):
     _model_name = ['getresponse.frst.personemailgruppe']
 
     _sync_allowed_states = ['subscribed', 'approved']
+
+    # ATTENTION: This is the domain for the unwrapped_odoo_model (in this case for frst.personemailgruppe)
     _bindings_domain = [('zgruppedetail_id.sync_with_getresponse', '=', True),
                         ('state', 'in', _sync_allowed_states),
                         # FRST Sperrgruppen
@@ -171,6 +193,7 @@ class ContactBinder(GetResponseBinder):
         domain = domain if domain else []
         domain += self._bindings_domain
         start = time.time()
+        # Limit the logged domain to 1024 chars
         domain_str = str(domain)[:1024]
         _logger.info("get_unbound() start for domain: %s" % domain_str)
         unbound = super(ContactBinder, self).get_unbound(domain=domain, limit=limit)
@@ -303,6 +326,7 @@ class ContactAdapter(GetResponseCRUDAdapter):
         Returns:
             bool: True for success, False otherwise
         """
+        _logger.info("ADAPTER: CREATE GetResponse contact with data '%s'" % data)
         # ATTENTION: The contact may not be created immediately by GetResponse - Therefore we will only get a
         #            boolean result. Therefore we can not bind the contact immediately!!!
         boolean_result = self.getresponse_api_session.create_contact(data)
@@ -313,7 +337,7 @@ class ContactAdapter(GetResponseCRUDAdapter):
     def write(self, ext_id, data):
         # Update the contact in GetResponse
         # ATTENTION: !!! This will replace the custom fields and the tags completely in GetResponse !!!
-
+        _logger.info("ADAPTER: Update GetResponse contact '%s' with data '%s'" % (ext_id, data))
         try:
             contact = self.getresponse_api_session.update_contact(ext_id, body=data)
         except NotFoundError as e:
@@ -331,6 +355,7 @@ class ContactAdapter(GetResponseCRUDAdapter):
         Returns:
             bool: True for success, False otherwise
         """
+        _logger.info("ADAPTER: DELETE GetResponse contact '%s'" % ext_id)
         try:
             result = self.getresponse_api_session.delete_contact(ext_id)
         except NotFoundError as e:

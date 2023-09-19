@@ -235,7 +235,16 @@ class sale_order(osv.Model):
                                                                  line_id=line_id, context=context)
         if context.get('price_donate'):
             res.update({'price_unit': context.get('price_donate')})
+
         return res
+
+    # def _apply_price_donate_to_order_line(self, cr, uid, context, line_id):
+    #     try:
+    #         if line_id:
+    #             line_recordset = self.pool.get('sale.order.line').browse(cr=cr, uid=uid, arg=[line_id], context=context)
+    #             line_recordset.update({'price_donate': context.get('price_donate')})
+    #     except Exception as ex:
+    #         _logger.error(ex)
 
     # extend _cart_update to write price_donate and payment_interval to the sale.order.line if existing in kwargs
     def _cart_update(self, cr, uid, ids, product_id=None, line_id=None, add_qty=0, set_qty=0, context=None, **kwargs):
@@ -299,7 +308,7 @@ class sale_order(osv.Model):
             #             if it is lower then do not set price_donate = do not alter price_unit
             if price_donate \
                     and is_float_gtz(price_donate) \
-                    and sol.product_id.price_donate \
+                    and (sol.product_id.price_donate or sol.product_id.product_tmpl_id.auto_recompute_price_donate) \
                     and price_donate >= sol.product_id.price_donate_min:
                 sol.price_donate = price_donate
                 # sol_obj.write(cr, SUPERUSER_ID, [line_id], {'price_donate': price_donate, }, context=context)
@@ -396,6 +405,13 @@ class sale_order(osv.Model):
                         sol_obj.unlink(cr, SUPERUSER_ID, [l.id], context=context)
                         continue
 
+                    # Giftee fields form mismatch (giftee fields)
+                    if product.giftee_form_id != l.product_id.giftee_form_id:
+                        _logger.info('_cart_update(): Remove sale order line (ID: %s) from SO (ID: %s) because '
+                                     'giftee fields configurations do not match' % (l.id, order.id))
+                        sol_obj.unlink(cr, SUPERUSER_ID, [l.id], context=context)
+                        continue
+
                     # Acquirer config mismatch
                     if product.product_acquirer_lines_ids != l.product_id.product_acquirer_lines_ids:
                         product_acquirer_ids = [] if not product.product_acquirer_lines_ids \
@@ -408,6 +424,13 @@ class sale_order(osv.Model):
                                          'acquirer configurations do not match' % (l.id, order.id))
                             sol_obj.unlink(cr, SUPERUSER_ID, [l.id], context=context)
                             continue
+
+                    # Redirect URL after payment provider mismatch
+                    if product.redirect_url_after_form_feedback != l.product_id.redirect_url_after_form_feedback:
+                        _logger.info('_cart_update(): Remove sale order line (ID: %s) from SO (ID: %s) because '
+                                     'redirect_url_after_form_feedback of the products do not match' % (l.id, order.id))
+                        sol_obj.unlink(cr, SUPERUSER_ID, [l.id], context=context)
+                        continue
 
         return cu
 
@@ -432,12 +455,6 @@ class sale_order(osv.Model):
 
         return res
 
-    _columns = {
-        'has_recurring': fields.function(_has_recurring,
-                                         type='boolean',
-                                         string='Has order lines with recurring transactions'),
-    }
-
     # Use a custom e-mail template from fso_base if it exists for the send quotation e-mail wizard.
     # HINT: action_quotation_send is already overwritten by addon "website_quote" and "portal_sale"!
     def action_quotation_send(self, cr, uid, ids, context=None,
@@ -459,6 +476,16 @@ class sale_order(osv.Model):
             pass
 
         return action_dict
+
+    # Giftee addon preparation
+    _columns = {
+        'has_recurring': fields.function(_has_recurring,
+                                         type='boolean',
+                                         string='Has order lines with recurring transactions'),
+        'giftee_partner_id': fields.many2one('res.partner', inverse_name="giftee_sale_order_ids",
+                                             string="Giftee", copy=False,
+                                             help="Products in this sale order are a gift for this partner"),
+    }
 
 
 # CROWD FUNDING EXTENSIONS

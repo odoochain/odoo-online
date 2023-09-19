@@ -34,6 +34,7 @@ class FRSTzGruppe(models.Model):
     gruppe_kurz = fields.Char(string="GruppeKurz", required=True, help="Interne Bezeichnung")
     gruppe_lang = fields.Char(string="GruppeLang", required=True, help="Anzeige fuer den Kunden und im GUI")
     gui_anzeigen = fields.Boolean(string="GuiAnzeigen")
+    active = fields.Boolean(string="Active", compute="_compute_active", store=True)
 
     zgruppedetail_ids = fields.One2many(comodel_name="frst.zgruppedetail", inverse_name='zgruppe_id',
                                         string="zGruppeDetail IDS")
@@ -51,6 +52,20 @@ class FRSTzGruppe(models.Model):
                                                   ('system', 'System Group')],
                                        default='system')
 
+    gui_gruppen_bearbeiten_moeglich = fields.Boolean(
+        string="Bearbeitung durch Sachbearbeiter",
+        default=True,
+        readonly=True,
+        help="Wenn nicht gesetzt, können Gruppenzuweisungen für Gruppen in diesem Gruppenordner nicht von "
+             "Sachbearbeitern zugewiesen, entfernt oder geändert werden.")
+
+    nur_eine_gruppe_anmelden = fields.Boolean(
+        string="Exklusive Gruppenanmeldung",
+        default=False,
+        readonly=True,
+        help="Wenn gesetzt kann nur eine Gruppe des Gruppenordners zugeordnet werden. Wird eine andere Gruppe aus dem"
+             "Ordner zugeordnet wird die vorangegangene Gruppenzuordnung gelöscht.")
+
     # ATTENTION: Diese Felder sind nur in FRST vorhanden und werden beim FSRT-Merge beruecksichtigt:
     #
     # TODO: Nur eine zGruppeDetail im Gruppenordner darf einem Datensatz zugeordnet werden (z.B. Person)
@@ -61,6 +76,10 @@ class FRSTzGruppe(models.Model):
     # TODO: Nur eine zGruppeDetail im Gruppenordner darf gueltig sein
     #       INFO: Ist nur sinnhaft für 'Status' oder 'Statistikgruppen' z.B.: 'Daten sind aktuell', 'inaktiv', ...
 
+    @api.depends('gui_anzeigen')
+    def _compute_active(self):
+        for r in self:
+            r.active = r.gui_anzeigen
 
     @api.model
     def create(self, vals):

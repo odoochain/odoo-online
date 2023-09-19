@@ -105,6 +105,7 @@ To solve this we did:
     ],
     'installable': True,
     'data': [
+        'data/payment_intervals.xml',
         'data/data.xml',
         #'data/email_template_data.xml', # moved to fso_base
         'security/ir.model.access.csv',
@@ -132,6 +133,8 @@ To solve this we did:
         'views/views.xml',
         'views/sale_order_line.xml',
         'views/website.xml',
+        'views/sale_order.xml',
+        'views/product_public_category.xml',
         #'views/fsonline_menu.xml', # Moved to fsonline addon
         'data/run_on_install_update.xml'        # Update xml_id field on update and install
     ],

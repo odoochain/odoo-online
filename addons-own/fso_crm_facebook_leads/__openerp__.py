@@ -25,12 +25,14 @@ Features to be considered/discussed:
     'version': '0.0.1',
     'license': 'AGPL-3',
     'depends': [
+        'base_phone_search',
         'crm_facebook_leads',
         'crm_lead_firstname',
         'fso_crm_extra_fields',
     ],
     'data': [
         'views/crm_facebook_form.xml',
+        'views/crm_facebook_form_field.xml',
         'views/fsonline_menu.xml',
         'views/crm_lead.xml',
         'views/frst_personemailgruppe.xml',

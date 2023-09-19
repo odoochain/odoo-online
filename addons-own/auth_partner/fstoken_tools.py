@@ -3,34 +3,12 @@
 from openerp import fields
 from openerp.http import request
 from openerp.tools.translate import _
+from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT
 import datetime
-import time
 # from openerp.addons.web.controllers.main import login_and_redirect, set_cookie_and_redirect
 
 import logging
 _logger = logging.getLogger(__name__)
-
-
-def _delay_token_check(wrong_tries=6, delay=3, reset_time=1):
-
-    # First time a wrong token was given for this session
-    if not request.session.get('wrong_fstoken_date'):
-        request.session['wrong_fstoken_date'] = datetime.datetime.now()
-        request.session['wrong_fstoken_tries'] = 1
-
-    # Subsequent wrong token given for this session
-    else:
-        # Reset if last incorrect try is older than 1h
-        if datetime.datetime.now() > request.session['wrong_fstoken_date'] + datetime.timedelta(hours=reset_time):
-            request.session.pop('wrong_fstoken_date', False)
-            request.session.pop('wrong_fstoken_tries', False)
-        else:
-            # SECURITY: Add a delay (Todo: Maybe we should close the connection?)
-            if request.session['wrong_fstoken_tries'] > wrong_tries:
-                _logger.warning("Adding delay of %s sec. for session xx because of %s wrong FS-Token tries!"
-                                % (delay, request.session['wrong_fstoken_tries']))
-                time.sleep(delay)
-            request.session['wrong_fstoken_tries'] += 1
 
 
 def fstoken_sanitize(fs_ptoken):
@@ -39,7 +17,6 @@ def fstoken_sanitize(fs_ptoken):
 
     if not isinstance(token, basestring):
         errors.append(_('Your code is no string!'))
-        _delay_token_check()
         return False, errors
 
     # Remove non alphanumeric characters
@@ -48,14 +25,13 @@ def fstoken_sanitize(fs_ptoken):
     # Check minimum token length
     if len(token) < 9:
         errors.append(_('Your code is too short!'))
-        _delay_token_check()
         return False, errors
 
     # Return sanitized token-string and the empty error-messages-list
     return token, errors
 
 
-def fstoken_check(fs_ptoken, log_usage=True):
+def _fstoken_check(fs_ptoken):
     # Sanitize the token string
     token_record, errors = fstoken_sanitize(fs_ptoken)
     if errors:
@@ -69,12 +45,12 @@ def fstoken_check(fs_ptoken, log_usage=True):
     ])
     if not token_record:
         errors.append(_('Wrong or expired code!'))
-        _delay_token_check()
         return False, False, errors
+
     # Check number of usages (max_checks)
     if token_record:
-        # ATTENTION: Default to 1 if max_checks is not set or set to 0!
-        max_checks = token_record.max_checks or 1
+        # ATTENTION: Default to 10 if max_checks is not set or set to 0!
+        max_checks = token_record.max_checks or 20
         if token_record.number_of_checks > max_checks:
             max_checks_msg = _('Token %s is expired because token was checked more than allowed by max_checks!'
                                '' % fs_ptoken)
@@ -149,24 +125,51 @@ def fstoken_check(fs_ptoken, log_usage=True):
                                                                                          token_record.id))
             return False, False, errors
 
-    # Update token statistic fields
-    if log_usage:
-        # TODO: log every use to a new model e.g.: res.partner.fstoken.usage
-        #       add a new kwarg to this function called "origin" and use this if filled for logging
-        #       token usage to res.partner.fstoken.usage
-        _logger.info("Log token usage for token with id %s" % token_record.id)
-        time_now = fields.datetime.now()
-        token_values = {
-            'last_date_of_use': time_now,
-            'last_datetime_of_use': time_now,
-            'number_of_checks': token_record.number_of_checks + 1,
-        }
-        # Add first_datetime_of_use if not already set
-        if not token_record.first_datetime_of_use:
-            token_values['first_datetime_of_use'] = time_now
-        # Write to the token
-        token_record.sudo().write(token_values)
-
     # Return fstoken record and the empty error-messages-list
     # ATTENTION: We pass the user on in case it was just created now and
     return token_record, user, errors
+
+
+def fstoken_check(fs_ptoken, log_usage=True, store_usage=False):
+    token_record, token_user, token_errors = _fstoken_check(fs_ptoken)
+
+    # Log token usage
+    if log_usage:
+        log_token_usage(fs_ptoken, token_record, token_user, token_errors, request.httprequest)
+
+    # Store token usage for valid tokens
+    if store_usage and token_record and not token_errors:
+        # User is already logged in
+        if token_user and token_user.id == request.session.uid:
+            store_token_usage(fs_ptoken, token_record, token_user, request.httprequest, login=False)
+        # Current user is not the token user therefore this token-check will lead to a login
+        else:
+            store_token_usage(fs_ptoken, token_record, token_user, request.httprequest, login=True)
+
+    return token_record, token_user, token_errors
+
+
+def log_token_usage(fs_ptoken, token_record, token_user, token_errors, httprequest):
+    url = httprequest.url
+    prefix = "fs_ptoken usage:"
+    token_info = "fs_ptoken: '%s', token_record: '%s', token_user '%s', token_errors '%s', url: '%s'" \
+                 "" % (fs_ptoken, token_record, token_user, token_errors, url)
+    if token_errors:
+        _logger.warning("%s ERROR %s" % (prefix, token_info))
+    else:
+        _logger.info("%s SUCCESS %s" % (prefix, token_info))
+
+
+def store_token_usage(fs_ptoken, token_record, token_user, httprequest, login=False):
+    token_log_obj = token_record.env['res.partner.fstoken.log'].sudo()
+    token_log_obj.create({
+        'log_date': datetime.datetime.now(),
+        'fs_ptoken': fs_ptoken,
+        'fs_ptoken_id': token_record.id,
+        'user_id': token_user.id,
+        'partner_id': token_user.partner_id.id,
+        'url': httprequest.url,
+        'ip': httprequest.remote_addr,
+        'device': httprequest.user_agent,
+        'login': login,
+    })

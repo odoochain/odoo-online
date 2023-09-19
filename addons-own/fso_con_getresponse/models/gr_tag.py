@@ -50,14 +50,28 @@ class GrTag(models.Model):
             # HINT: The Getresponse API would allow uppercase letters but would convert them to lowercases
             #       anyway. This means tag names are case insensitive. For that reason we only allow lowercase in
             #       in the first place!
-            assert re.match(r"(?:[a-z0-9_]+)\Z", r.name, flags=0), _(
-                                "Only a-z, 0-9 and _ is allowed for the Tag name: '{}'! ").format(r.name)
+            assert re.match(r"(?:[A-Za-z0-9_]+)\Z", r.name, flags=0), _(
+                                "Only A-Z, a-z, 0-9 and _ is allowed for the Tag name: '{}'! ").format(r.name)
 
     @api.constrains('cds_id')
     def _constrain_cds_id(self):
         for r in self:
             if r.cds_id:
                 assert not r.cds_id.verzeichnistyp_id, _("You can not select a CDS folder!")
+
+    @api.multi
+    def button_open_getresponse_tag_bindings(self):
+        assert self.ensure_one(), "Please select one tag only!"
+        # HINT: This will not overwrite the domain of the view because we do not use action.domain =
+        #       Maybe we should do a deepcopy and a convert to an dict to make this more obvious ;)
+        action = self.env['ir.actions.act_window'].for_xml_id(
+            'fso_con_getresponse', 'action_getresponse_gr_tag')
+        action['domain'] = [('odoo_id.id', '=', self.id),
+                            '|',
+                                ('active', '=', False),
+                                ('active', '=', True)
+                            ]
+        return action
 
     @api.model
     def create(self, vals):
@@ -80,10 +94,9 @@ class GrTag(models.Model):
     @api.multi
     def unlink(self):
         if any(r.partner_ids for r in self):
-            raise ValidationError("You can not delete Tags that are still assigned to parnter!")
+            raise ValidationError("You can not delete Tags that are still assigned to partner!")
 
         return super(GrTag, self).unlink()
-
 
 class GrTagResPartner(models.Model):
     _inherit = 'res.partner'

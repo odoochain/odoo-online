@@ -19,6 +19,7 @@ class MailMassMailingList(models.Model):
                                                            ('petition', "Petition"),
                                                            ('sms', 'SMS Subscription'),
                                                            ('whatsapp', "WhatsApp Subscription"),
+                                                           ('activism', "Activism"),
                                                            ('none', "None")],
                                  default='email', required=True)
 
@@ -76,10 +77,14 @@ class MailMassMailingList(models.Model):
     @api.depends('goal', 'goal_increase_at', 'contact_ids')
     def _cmp_goal_reached(self):
         for r in self:
-            if r.goal and r.contact_nbr:
+            # Initialize dynamic goal
+            goal_dynamic = r.goal_dynamic if r.goal_dynamic else r.goal
 
-                # Initialize dynamic goal
-                goal_dynamic = r.goal_dynamic if r.goal_dynamic else r.goal
+            # Initialize goal_reached
+            goal_reached = 0
+
+            # Compute percentage reached for field goal_reached
+            if r.goal and r.contact_nbr:
 
                 # Number of subscriptions (int)
                 contact_nbr = r.contact_nbr
@@ -88,22 +93,21 @@ class MailMassMailingList(models.Model):
                     return int(round(float(subscribers) / (float(goal) / 100)))
 
                 # Compute percentage reached based on list subscriptions
-                percentage_reached = pr(contact_nbr, goal_dynamic)
+                goal_reached = pr(contact_nbr, goal_dynamic)
 
                 # Compute new dynamic goal and percentage_reached
                 runs = 1
-                while r.goal_increase_step and percentage_reached >= r.goal_increase_at:
+                while r.goal_increase_step and goal_reached >= r.goal_increase_at:
                     goal_dynamic = goal_dynamic + r.goal_increase_step
-                    percentage_reached = pr(contact_nbr, goal_dynamic)
+                    goal_reached = pr(contact_nbr, goal_dynamic)
                     runs = runs + 1
                     if runs > 100:
                         logger.error("goal_dynamic still not high enough after 100 increments!")
                         break
 
-                r.goal_dynamic = goal_dynamic
-                r.goal_reached = percentage_reached
-            else:
-                r.goal_reached = 0
+            # Assign computed values to fields
+            r.goal_dynamic = goal_dynamic
+            r.goal_reached = goal_reached
 
     def _cmp_website_url(self):
         for r in self:
@@ -138,7 +142,8 @@ class MailMassMailingList(models.Model):
             if not r.subscription_form:
                 # Create the fso form
                 list_contact_model = self.env['ir.model'].search([('model', '=', 'mail.mass_mailing.contact')])
-                form_vals = {'name': _('Subscription form for mailing list %s (id %s)') % (r.name, r.id),
+                form_vals = {'type': 'standard',
+                             'name': _('Subscription form for mailing list %s (id %s)') % (r.name, r.id),
                              'model_id': list_contact_model.id,
                              'submit_button_text': _('Subscribe'),
                              'clear_session_data_after_submit': True,
@@ -150,37 +155,43 @@ class MailMassMailingList(models.Model):
                 form = self.env['fson.form'].create(form_vals)
 
                 # Create the fso form fields
-                f_fields = {'firstname': {'sequence': 1,
+                f_fields = {'firstname': {'type': 'model',
+                                          'sequence': 1,
                                           'show': True,
                                           'label': _('Firstname'),
                                           'mandatory': False,
                                           'css_classes': 'col-sm-12 col-md-12 col-lg-12',
                                           'clearfix': True},
-                            'lastname': {'sequence': 2,
+                            'lastname': {'type': 'model',
+                                         'sequence': 2,
                                          'show': True,
                                          'label': _('Lastname'),
                                          'mandatory': True,
                                          'css_classes': 'col-sm-12 col-md-12 col-lg-12',
                                          'clearfix': True},
-                            'email': {'sequence': 3,
+                            'email': {'type': 'model',
+                                      'sequence': 3,
                                       'label': _('E-Mail'),
                                       'show': True,
                                       'mandatory': True,
                                       'css_classes': 'col-sm-12 col-md-12 col-lg-12',
                                       'clearfix': True},
-                            'list_id': {'sequence': 9900,
+                            'list_id': {'type': 'model',
+                                        'sequence': 9900,
                                         'show': True,
                                         'label': _('Subscription List'),
                                         'default': r.id,
                                         'mandatory': True,
                                         'css_classes': 'hide_it'},
-                            'pe_partner_id': {'sequence': 9910,
+                            'pe_partner_id': {'type': 'model',
+                                              'sequence': 9910,
                                               'show': False,
                                               'login': True,
                                               'label': _('Partner'),
                                               'mandatory': False,
                                               'css_classes': 'hide_it'},
-                            'origin': {'sequence': 9920,
+                            'origin': {'type': 'model',
+                                       'sequence': 9920,
                                        'show': True,
                                        'label': _('Origin'),
                                        'default': r.website_url,

@@ -20,12 +20,15 @@ from openerp import http
 from openerp.http import request
 from openerp import tools
 from openerp.tools.translate import _
+from openerp.exceptions import AccessError
 
 # import locale
 # import urllib2
 import base64
 import datetime
 from collections import namedtuple
+from copy import deepcopy
+import ast
 
 import logging
 _logger = logging.getLogger(__name__)
@@ -37,6 +40,9 @@ try:
 except ImportError:
     _logger.warning("Could not import 'mako_template_env' or 'format_tz'! "
                     "E-mail rendering without a record will not work!")
+
+# Token login Form
+from openerp.addons.website_login_fs_ptoken.controllers.controller import AuthPartnerForm
 
 
 class FsoForms(http.Controller):
@@ -173,7 +179,16 @@ class FsoForms(http.Controller):
         # ---------------------------------------------------
         form_sdata = self.get_fso_form_session_data(form)
         if form_sdata:
-            record = form_model_obj.browse([form_sdata['form_record_id']])
+            session_record = form_model_obj.browse([form_sdata['form_record_id']])
+            # Check if we have at least read access to the record
+            # HINT: Could not use session_record.check_access_rights('read', raise_exception=False) because it will
+            #       simply not work correctly for the default public/website user (uid 3)
+            try:
+                session_record[session_record._fields.keys()[0]]
+                record = session_record
+            except AccessError:
+                _logger.error("No read access for the current fso_forms session record! %s" % session_record)
+                pass
 
         # TRY TO FIND A FORM-RELATED-RECORD BASED ON THE LOGGED IN USER AND THE LOGIN-MARKED-FIELD
         # ----------------------------------------------------------------------------------------
@@ -196,7 +211,16 @@ class FsoForms(http.Controller):
 
                 # Return a record only if exactly ONE record was found else we return an empty recordset
                 if form_records_by_user and len(form_records_by_user) == 1:
-                    record = form_records_by_user
+                    user_record = form_records_by_user
+                    # Check if we have at least read access to the record
+                    # HINT: Could not use user_record.check_access_rights('read', raise_exception=False) because it
+                    #       will simply not work correctly for the default public/website user (uid 3)
+                    try:
+                        user_record[user_record._fields.keys()[0]]
+                        record = user_record
+                    except AccessError:
+                        _logger.error("No read access for the current fso_forms user_record! %s" % user_record)
+                        pass
                 else:
                     record = request.env[form_model_name]
 
@@ -224,20 +248,23 @@ class FsoForms(http.Controller):
         field_errors = dict()
 
         # SPAM detection by honeypot fields
-        honey_pot_fields = (f for f in form.field_ids if f.honeypot)
-        honey_pot_test = any(field_data.get('hpf-'+str(f.id), None) for f in honey_pot_fields)
+        honey_pot_fields = (f for f in form.field_ids if f.type == 'honeypot')
+        honey_pot_test = any(field_data.get(f.name, None) for f in honey_pot_fields)
         if honey_pot_test:
             return {'honey_pot_test': True}
 
+        # Validate regular (model) fields
         for f in form.field_ids:
+            if not f.show:
+                continue
 
-            if f.field_id and f.show:
+            if f.type == 'model':
 
                 # ATTENTION: Skipp readonly fields if a user is logged in
                 if f.readonly and request.website.user_id.id != request.uid:
                     continue
 
-                f_name = f.field_id.name
+                f_name = f.name
                 f_display_name = f.label if f.label else f_name
                 f_type = f.field_id.ttype
                 f_style = f.style
@@ -302,18 +329,24 @@ class FsoForms(http.Controller):
     def _prepare_field_data(self, form=None, form_field_data=None, record=None):
         form_field_data = form_field_data or {}
 
-        # Transform the form field data if needed
+        # Values dict with transformed field data
         values = {}
 
         # Loop through all the fields in the form
         for f in form.field_ids:
-            if f.field_id and f.show:
+            if not f.show:
+                continue
 
+            # Get the name of the field in the form
+            f_name = f.name
+
+            # Regular Model Field
+            # -------------------
+            if f.type == 'model':
                 # ATTENTION: Skipp readonly fields if a user is logged in and a record was found
                 if f.readonly and request.website.user_id.id != request.uid and record:
                     continue
 
-                f_name = f.field_id.name
                 f_type = f.field_id.ttype
                 f_style = f.style
 
@@ -382,48 +415,82 @@ class FsoForms(http.Controller):
         return values
 
     def _prepare_kwargs_for_form(self, form, record=None, **kwargs):
-        # Remove binary fields (e.g. images) from kwargs before rendering the form
+
         if kwargs:
             for f in form.field_ids:
-                if f.field_id and f.field_id.ttype == 'binary':
-                    if f.field_id.name in kwargs:
-                        kwargs.pop(f.field_id.name)
+
+                f_name = f.name
+
+
+                # Regular model fields
+                if f.type == 'model':
+
+                    # Remove binary fields (e.g. images) from kwargs before rendering the form
+                    if f.field_id.ttype == 'binary':
+                        if f_name in kwargs:
+                            kwargs.pop(f_name)
+
+                    # Convert german date strings '%d.%m.%Y' to the default odoo datetime string format %Y-%m-%d
+                    # because the are expected like this in the template 'form_fields'
+                    # TODO: Localization - !!! Right now we expect DE values from the forms !!!
+                    if f.field_id.ttype == 'date':
+                        date_string = kwargs.get(f.name, '')
+                        if date_string:
+                            try:
+                                date = datetime.datetime.strptime(date_string, '%d.%m.%Y')
+                                date_odoo_format = datetime.datetime.strftime(date, '%Y-%m-%d')
+                                kwargs[f_name] = date_odoo_format
+                            except Exception as e:
+                                _logger.error("Could not convert german date string to odoo format! %s" % date_string)
+                                pass
+
         return kwargs
 
     def _prepare_kwargs_for_mail(self, form, **kwargs):
+
+        # Result
         form_values = dict()
+
         if not kwargs:
             return form_values
 
         for f in form.field_ids:
-            if f.field_id and f.field_id.name in kwargs:
-                f_name = f.field_id.name
+            f_name = f.name
 
-                # binary: Ignore binary fields
-                if f.field_id.ttype == 'binary':
-                    continue
+            if f_name in kwargs:
 
-                # selection: Replace selection value with the selection name
-                elif f.field_id.ttype == 'selection':
-                    item_id = kwargs[f_name]
-                    try:
-                        item_name = dict(request.env[form.model_id.model].fields_get([f_name])[f_name]['selection']
-                                         )[item_id]
-                        form_values[f_name] = item_name
-                    except:
-                        form_values[f_name] = kwargs[f_name]
-
-                # many2one: Replace the id with the name of the record
-                elif f.field_id.ttype == 'many2one':
-                    try:
-                        item_name = request.env[f.field_id.relation].search([('id', '=', kwargs[f_name])]).name
-                        form_values[f_name] = item_name
-                    except:
-                        form_values[f_name] = kwargs[f_name]
-
-                # Include all other fields
-                else:
+                # Comment (Mail-Message-Field)
+                if f.type == 'mail_message':
                     form_values[f_name] = kwargs[f_name]
+
+                # Regular (model) fields
+                elif f.type == 'model':
+
+                    # binary: Ignore binary fields
+                    if f.field_id.ttype == 'binary':
+                        continue
+
+                    # selection: Replace selection value with the selection name
+                    elif f.field_id.ttype == 'selection':
+                        item_id = kwargs[f_name]
+                        try:
+                            item_name = dict(request.env[form.model_id.model].fields_get([f_name])[f_name]['selection']
+                                             )[item_id]
+                            form_values[f_name] = item_name
+                        except:
+                            form_values[f_name] = kwargs[f_name]
+
+                    # many2one: Replace the id with the name of the record
+                    elif f.field_id.ttype == 'many2one':
+                        try:
+                            item_name = request.env[f.field_id.relation].search([('id', '=', kwargs[f_name])]).name
+                            form_values[f_name] = item_name
+                        except:
+                            form_values[f_name] = kwargs[f_name]
+
+                    # Include all other fields
+                    else:
+                        form_values[f_name] = kwargs[f_name]
 
         return form_values
 
@@ -558,6 +625,67 @@ class FsoForms(http.Controller):
             self.send_mail(template=form.confirmation_email_template, record=record, template_values=template_values,
                            email_to=email_to)
 
+    def post_messages(self, form, form_field_data, record):
+        for f in form.field_ids:
+            if f.type == 'mail_message':
+                f_name = f.name
+                comment = form_field_data.get(f_name, None)
+                if comment:
+                    # HINT: get_external_id() will return a dict like {id: xml-id-name}
+                    subtype_xml_id_name = f.mail_message_subtype.get_external_id().get(f.mail_message_subtype.id)
+                    user = request.env.user
+                    message_txt = ("%s\n"
+                                   "\n"
+                                   "---\n"
+                                   "%s, user: %s, login: %s,\n"
+                                   "%s, form-%s, field-%s, label: %s\n" % (
+                                       comment,
+                                       user.partner_id.name, user.id, user.login,
+                                       f.mail_message_subtype.name, form.id, f.id, f.label))
+                    record.sudo().with_context(mail_post_autofollow=False).message_post(
+                        body=message_txt,
+                        type='comment',
+                        subtype=subtype_xml_id_name,
+                        content_subtype="plaintext")
+
+    def is_logged_in(self):
+        # The default website user does not count as a logged in user
+        default_website_user = request.env.ref('base.public_user', raise_if_not_found=True)
+        if not request.env.user or (default_website_user and default_website_user.id == request.env.user.id):
+            return False
+        return True
+
+    def _redirect_after_form_submit(self, form, record, forced_redirect_url='', forced_redirect_target=''):
+        redirect_target = ''
+
+        # Compute the redirect url
+        if forced_redirect_url:
+            redirect_url = forced_redirect_url
+            redirect_target = forced_redirect_target
+        else:
+            # Thank you page
+            redirect_url = "/fso/form/thanks/" + str(form.id)
+
+            # Logged in
+            if form.redirect_url_if_logged_in and request.website.user_id.id != request.uid:
+                redirect_url = form.redirect_url_if_logged_in
+                redirect_target = form.redirect_url_if_logged_in_target or ""
+
+            # Not logged in
+            elif form.redirect_url:
+                redirect_url = form.redirect_url
+                redirect_target = form.redirect_url_target or ""
+
+        # redirect_target
+        # HINT: If redirect_target is set we need to redirect by java script therefore we render a page with js in it
+        if redirect_target in ['_parent', '_blank']:
+            return http.request.render('fso_forms.thank_you_redirect',
+                                       {'redirect_url': redirect_url,
+                                        'redirect_target': redirect_target})
+        # Regular redirect
+        else:
+            return request.redirect(redirect_url)
+
     @http.route(['/fso/form/<int:form_id>'], methods=['POST', 'GET'], type='http', auth="public", website=True)
     def fso_form(self, form_id=None, render_form_only=False, lazy=True, **kwargs):
         form_id = int(form_id)
@@ -582,7 +710,37 @@ class FsoForms(http.Controller):
             _logger.error("NO USER IN request.env.uid! REDIRECTING TO: %s" % redirect_url)
             return request.redirect(redirect_url)
 
+        # Login handling
+        # --------------
+        # TODO: This seems to be a bad solution because it may loose all kwargs for the fso_form
+        #       Check that the kwargs are already "stored" by url attribs in request.httprequest.url
+        if form.login_required and not self.is_logged_in():
+            _logger.info("FSO_Form %s render token login form!" % form.id)
+            if form.show_token_login_form:
+                tlf_kwargs = deepcopy(kwargs)
+                tlf_kwargs.pop('token_data_submission_url', None)
+                redirect_url = tlf_kwargs.pop('redirect_url_after_token_login', request.httprequest.url)
+                assert redirect_url.startswith(request.httprequest.host_url), 'Only local redirects allowed!'
+                tlf_kwargs.pop('tlf_record', None)
+                token_login_form = AuthPartnerForm().web_login_fs_ptoken(
+                    token_data_submission_url=request.httprequest.url,
+                    redirect_url_after_token_login=redirect_url,
+                    tlf_record=form,
+                    # tlf_top_snippets=form.tlf_top_snippets,
+                    # tlf_headline=form.tlf_headline,
+                    # tlf_label=form.tlf_label,
+                    # tlf_submit_button=form.tlf_submit_button,
+                    # tlf_logout_button=form.tlf_logout_button,
+                    # tlf_bottom_snippets=form.tlf_bottom_snippets,
+                    **tlf_kwargs
+                )
+                return token_login_form
+            else:
+                # TODO: Change template to render just this message in the errors box but with full website template
+                return "Login required!"
+
         # Get the form and session related record
+        # ---------------------------------------
         # HINT: This will either return a single record or an empty recordset (= form.model_id.model object)
         record = self.get_fso_form_record(form)
         if record:
@@ -625,16 +783,28 @@ class FsoForms(http.Controller):
                     values = self._prepare_field_data(form=form, form_field_data=kwargs, record=record)
                     if values:
                         try:
+                            # Create record
+                            # -------------
                             if not record:
                                 if form.create_as_user:
                                     record = record.sudo(form.create_as_user.id).create(values)
+                                elif form.create_as_user_nologin and not self.is_logged_in():
+                                    record = record.sudo(form.create_as_user_nologin.id).create(values)
                                 else:
                                     # TODO: Check why we can't create that record as the public user with mail_thread
                                     #       enabled for the record model!!!
                                     record = record.create(values)
                                 messages.append(_('Data was successfully submitted!'))
+
+                            # Update record
+                            # -------------
                             else:
-                                record.write(values)
+                                if form.update_as_user:
+                                    record.sudo(form.update_as_user.id).write(values)
+                                elif form.update_as_user_nologin and not self.is_logged_in():
+                                    record.sudo(form.update_as_user_nologin.id).write(values)
+                                else:
+                                    record.write(values)
                                 messages.append(_('Data was successfully updated!'))
                             # Update the session data
                             # HINT: If clear_session_data_after_submit is set the form will be empty at the next
@@ -654,48 +824,40 @@ class FsoForms(http.Controller):
                             # ATTENTION: This is really important or unwanted records and side effects may be created!
                             # HINT: Since we catch the Exception that would lead to an rollback and a backend gui
                             #       message and never raise it we have to do this by our own!
-                            # TODO: Check if this leafs open cursors behind or if odoo cleans them up after the
+                            # TODO: Check if this leaves open cursors behind or if odoo cleans them up after the
                             #       rollback!
                             record.env.cr.rollback()
 
                             _logger.error("FsoForms Exception: %s" % repr(e))
                             pass
 
-                        # Send emails
-                        # WARNING: If the records got created or updated but the e-mail(s) could not be send we will
-                        #          continue without raising an exception!
+                        # ADDITIONAL TASKS
+                        # ----------------
                         if record and not errors:
+
+                            # Send emails
+                            # -----------
+                            # WARNING: If the the e-mail(s) could not be send we continue without raising the exception!
                             try:
                                 self.send_form_emails(form=form, record=record)
                             except Exception as e:
                                 _logger.error("fso_forms: Could not send e-mail(s)!\n%s" % repr(e))
                                 pass
 
+                            # Post comments (chatter)
+                            # -----------------------
+                            # WARNING: If the comments can not be created we continue without raising the exception!
+                            try:
+                                self.post_messages(form=form, form_field_data=kwargs, record=record)
+                            except Exception as e:
+                                _logger.error("fso_forms: Could not post messages!\n%s" % repr(e))
+                                pass
+
                 # Redirect to Thank you Page if set by the form or to the url selected
                 # HINT: The Thank You Page the only page where you could edit the data again if not logged in
                 #       by pressing the edit button
                 if form.redirect_after_submit and not warnings and not errors:
-                    # Thank you page
-                    redirect_url = "/fso/form/thanks/"+str(form.id)
-                    redirect_target = ""
-
-                    # Logged in
-                    if form.redirect_url_if_logged_in and request.website.user_id.id != request.uid:
-                        redirect_url = form.redirect_url_if_logged_in
-                        redirect_target = form.redirect_url_if_logged_in_target or ""
-
-                    # Not logged in
-                    elif form.redirect_url:
-                        redirect_url = form.redirect_url
-                        redirect_target = form.redirect_url_target or ""
-
-                    # If redirect_target is set we need to redirect by java script.
-                    if redirect_target in ['_parent', '_blank']:
-                        return http.request.render('fso_forms.thank_you_redirect',
-                                                   {'redirect_url': redirect_url,
-                                                    'redirect_target': redirect_target})
-
-                    return request.redirect("/fso/form/thanks/"+str(form.id))
+                    return self._redirect_after_form_submit(form, record)
 
         # FINALLY RENDER THE FORM
         # -----------------------
@@ -711,6 +873,8 @@ class FsoForms(http.Controller):
                            'errors': errors,
                            'warnings': warnings,
                            'messages': messages,
+                           # To export the ast lib
+                           'ast': ast,
                            }
         return http.request.render('fso_forms.form', template_kwargs, lazy=lazy)
 

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<openerp>
+    <data noupdate="0">
+
+        <!-- sosync PARTNER -->
+        <record model="res.partner" id="base.partner_sosync">
+            <field name="firstname">FS-Online</field>
+            <field name="lastname">Syncer Service</field>
+            <!-- field name="company_id" ref="base.main_company"/ -->
+            <field name="customer" eval="False"/>
+            <field name="email">sosync@datadialog.net</field>
+        </record>
+
+        <!-- sosync USER -->
+        <record model="res.users" id="base.user_sosync">
+            <field name="firstname">FS-Online</field>
+            <field name="lastname">Syncer Service</field>
+            <field name="login">sosync</field>
+            <field name="partner_id" ref="base.partner_sosync"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="company_ids" eval="[(4, ref('base.main_company'))]"/>
+        </record>
+
+        <!-- sosync GROUP -->
+        <record id="base.sosync" model="res.groups">
+            <field name="name">sosync (Do not assign to a regular user)</field>
+            <field name="comment">
+                Group members of the sosync group have access to most of the odoo models.
+                I gets all groups from the base.studio group from the fsonline addon which gets all groups from the
+                fso_base.instance_system_user group from the fso_base addon!
+                This is a technical group and should never be assigned to regular user!
+            </field>
+            <!-- Add sosync user to group -->
+            <field name="users" eval="[(4, ref('base.user_sosync'))]"/>
+            <!-- Inherited Groups -->
+            <field name="implied_ids"
+                   eval="[
+                   (4, ref('fso_sosync_base.group_sosync_manager')),
+                   ]"/>
+        </record>
+
+    </data>
+</openerp>

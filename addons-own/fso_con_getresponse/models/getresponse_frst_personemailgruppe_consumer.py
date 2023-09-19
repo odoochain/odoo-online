@@ -23,8 +23,8 @@ def prepare_binding_on_contact_create(session, model_name, record_id, vals):
     # We could get the binding model from session.env[model_name]._fields['getresponse_bind_ids'].comodel_name
     binding_model_name = 'getresponse.frst.personemailgruppe'
     unwrapped_record_id = record_id
-    _logger.debug('CONSUMER: Prepare contact binding for binding model %s and frst.personemailgruppe id %s'
-                  '' % (binding_model_name, unwrapped_record_id))
+    _logger.info('CONSUMER: Prepare contact binding for binding model %s and frst.personemailgruppe id %s'
+                 '' % (binding_model_name, unwrapped_record_id))
     prepare_binding(session, binding_model_name, unwrapped_record_id, vals)
 
 
@@ -32,7 +32,7 @@ def prepare_binding_on_contact_create(session, model_name, record_id, vals):
 @on_record_create(model_names=['getresponse.frst.personemailgruppe'])
 def export_binding_on_contact_binding_create(session, binding_model_name, binding_record_id, vals):
     """ Export a prepared contact binding (new binding without external id) """
-    _logger.debug('CONSUMER: Export Contact binding ON CREATE %s, %s' % (binding_model_name, binding_record_id))
+    _logger.info('CONSUMER: Export Contact binding ON CREATE %s, %s' % (binding_model_name, binding_record_id))
     export_binding(session, binding_model_name, binding_record_id, vals, delay=True)
 
 
@@ -41,24 +41,32 @@ def export_binding_on_contact_binding_create(session, binding_model_name, bindin
 def export_binding_on_contact_update(session, model_name, record_id, vals):
     """ Update the contact(s) in getresponse for all existing bindings (multiple backends possible) """
     # Get all odoo field names from the custom field definitions
-    _logger.debug('CONSUMER: Export Contact binding ON UPDATE: model name: %s, record id: %s, vals: %s'
-                  '' % (model_name, record_id, vals))
+    _logger.info('CONSUMER: Export Contact binding ON UPDATE: model name: %s, record id: %s, vals: %s'
+                 '' % (model_name, record_id, vals))
     watched_custom_fields_by_model = session.env['gr.custom_field'].watched_fields()
 
     # Get Watched fields
     watched_fields = []
     if model_name == 'res.partner':
-        watched_fields = ['name', 'firstname', 'lastname', 'getresponse_tag_ids']
+        watched_fields = ['active', 'name', 'firstname', 'lastname', 'getresponse_tag_ids']
         if watched_custom_fields_by_model.get(model_name, False):
             watched_fields += watched_custom_fields_by_model[model_name]
 
+    # ATTENTION: Computed fields like 'state' will not be in the vals and therefore would not trigger an export!
+    #            Use the depends on of the computed fields instead!
     elif model_name == 'frst.personemail':
-        watched_fields = ['email', 'partner_id', 'state']
+        watched_fields = ['active', 'email', 'partner_id',
+                          'gueltig_von', 'gueltig_bis', 'bestaetigt_am_um', 'steuerung_bit',
+                          'partner_frst_blocked', 'partner_frst_blocked_email']
         if watched_custom_fields_by_model.get(model_name, False):
             watched_fields += watched_custom_fields_by_model[model_name]
 
+    # ATTENTION: Computed fields like 'state' will not be in the vals and therefore would not trigger an export!
+    #            Use the depends on of the computed fields instead!
     elif model_name == 'frst.personemailgruppe':
-        watched_fields = ['zgruppedetail_id', 'frst_personemail_id', 'state']
+        watched_fields = ['active', 'zgruppedetail_id', 'frst_personemail_id',
+                          'gueltig_von', 'gueltig_bis', 'bestaetigt_am_um', 'steuerung_bit',
+                          'partner_frst_blocked', 'partner_frst_blocked_email']
         if watched_custom_fields_by_model.get(model_name, False):
             watched_fields += watched_custom_fields_by_model[model_name]
 

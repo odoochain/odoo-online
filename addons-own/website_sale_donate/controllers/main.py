@@ -11,6 +11,7 @@ from urlparse import urlparse
 # from openerp.addons.website.models.website import slug
 
 import locale
+import ast
 # import re
 
 # import copy
@@ -28,6 +29,13 @@ _logger = logging.getLogger(__name__)
 
 
 class website_sale_donate(website_sale):
+    # List of Tuple (GET-Param, QContext-Field) to map
+    # which GET Parameters are mapped to the qcontext
+    # in order to pre-fill the form with parameters
+    _product_page_parameter_pass_through = [
+        ('price_donate', 'price_donate', lambda d: d),
+        ('payment_interval', 'payment_interval_id', lambda d: int(d)),
+    ]
 
     # Sort countries and states by website language
     # HINT: Sort by "language in context" for name field is not implemented in o8 fixed in o9 and up!
@@ -86,6 +94,21 @@ class website_sale_donate(website_sale):
                         fso_forms_billing_fields = line.product_id.checkout_form_id.field_ids
 
         return fso_forms_billing_fields
+
+    # Get custom giftee fields from product of current product page or from product in sale.order
+    def get_fso_forms_giftee_fields(self, product=None):
+        fso_forms_giftee_fields = None
+
+        if product:
+            fso_forms_giftee_fields = product.giftee_form_id.field_ids if product.giftee_form_id else None
+        else:
+            order = request.website.sale_get_order()
+            if order and order.website_order_line:
+                for line in order.website_order_line:
+                    if line.product_id and line.product_id.giftee_form_id:
+                        fso_forms_giftee_fields = line.product_id.giftee_form_id.field_ids
+
+        return fso_forms_giftee_fields
 
     def _get_payment_interval_id(self, product):
         payment_interval_id = False
@@ -208,6 +231,11 @@ class website_sale_donate(website_sale):
         if request.httprequest.method == 'POST' \
                 and product.product_page_template == u'website_sale_donate.ppt_opc' \
                 and 'json_cart_update' not in request.session:
+
+            # CHECK FOR HONEY POT FIELD
+            if self.tapped_into_honeypot(kwargs):
+                return None
+
             # Create or Update sales Order
             # and set the Quantity to the value of the qty selector in the checkoutbox
             if 'add_qty' in kwargs and not 'set_qty' in kwargs:
@@ -245,6 +273,7 @@ class website_sale_donate(website_sale):
 
         # Add Information that the product page controller was called
         productpage.qcontext['product_controller_called'] = True
+        productpage.qcontext['ast'] = ast
 
         # Render Custom Product Template based on the product_page_template field if any set
         # Add One-Page-Checkout qcontext if template is ppt_opc
@@ -294,8 +323,10 @@ class website_sale_donate(website_sale):
 
         # Find selected payment interval
         # 1. Set payment interval from form post data
-        if kwargs.get('payment_interval_id'):
-            productpage.qcontext['payment_interval_id'] = kwargs.get('payment_interval_id')
+        for get_param, qcontext_field, convert_func in self._product_page_parameter_pass_through:
+            if kwargs.get(get_param):
+                productpage.qcontext[qcontext_field] = convert_func(kwargs.get(get_param))
+
         # 2. Or Set payment interval from defaults (only if not already set in productpage.qcontext)
         if not productpage.qcontext.get('payment_interval_id'):
             payment_interval_id = self._get_payment_interval_id(product)
@@ -389,17 +420,16 @@ class website_sale_donate(website_sale):
             _logger.warning("cart_update(): START")
 
         cr, uid, context = request.cr, request.uid, request.context
-
         product = request.registry['product.product'].browse(cr, SUPERUSER_ID, [int(product_id)], context=context)
+        referrer = None
 
-        # Redirect to the calling page (referrer) if the browser has added it
-        # HINT: Not every browser adds the referrer to the header
-        referrer = request.httprequest.referrer
-        if not referrer:
-            if request.session.get('last_page'):
-                referrer = request.session.get('last_page')
-            else:
-                referrer = '/shop/product/%s' % product.product_tmpl_id.id
+        if request.session.get('last_page'):
+            referrer = request.session.get('last_page')
+            _logger.info("Use REFERER (from session last_page): %s" % referrer)
+        else:
+            referrer = '/shop/product/%s' % product.product_tmpl_id.id
+            _logger.info("Use REFERER (from product.product_tmpl_id Point 1): %s" % referrer)
+
         if '?' not in referrer:
             referrer = referrer + '?'
 
@@ -431,6 +461,8 @@ class website_sale_donate(website_sale):
             # ATTENTION! Remove kwargs to avoid calling OPC product pages with all kwargs again!
             if "/product" in referrer:
                 referrer = '/shop/product/%s?' % product.product_tmpl_id.id
+                _logger.info("Use REFERER (from product.product_tmpl_id Point 2): %s" % referrer)
+
             # Add the warning to the referer page
             referrer = referrer + '&warnings=' + warnings
             _logger.error("cart_update(): END, arbitrary price (%s) ERROR! Warnings: %s! Redirecting to referrer: %s"
@@ -475,8 +507,10 @@ class website_sale_donate(website_sale):
             _logger.warning("cart_update(): END, EXIT A) Simple Checkout, redirect to /shop/checkout")
             return request.redirect('/shop/checkout')
 
-        # EXIT B) Stay on the current page if "Add to cart and stay on current page" is set
-        if request.website['add_to_cart_stay_on_page']:
+        # EXIT B) Stay on the current page if "Add to cart and stay on current page" is set AND
+        #         we come from a category page (product listing page)
+        #         TODO: Check what happens if we come from a category page where the URL was changed by SEO URL!!
+        if kw.get('add_to_cart_stay_on_page', False):
             _logger.warning("cart_update(): END, EXIT B) Stay on the current page")
             return request.redirect(referrer)
 
@@ -499,7 +533,7 @@ class website_sale_donate(website_sale):
 
     # Add Shipping and Billing Fields to values (= the qcontext for the checkout template)
     # HINT: The calculated values for the fields can be found in the qcontext dict in key 'checkout'
-    def checkout_values(self, data=None):
+    def checkout_values(self, data=None, product=None):
         # Add geoip to session if not there
         if 'geoip' not in request.session:
             request.session['geoip'] = {}
@@ -515,17 +549,23 @@ class website_sale_donate(website_sale):
             values['states'] = states
 
         # Add billing fields from the product linked fson.form (fso_forms)
-        fso_forms_billing_fields = self.get_fso_forms_billing_fields()
+        fso_forms_billing_fields = self.get_fso_forms_billing_fields(product=product)
         if fso_forms_billing_fields:
             values['fso_forms_billing_fields'] = fso_forms_billing_fields
 
-            # TODO: prepare form data if any (values['checkout']) maybe by fso.form._prepare_field_data()?!?
-            # Parse form data to match odoo field types
+            # Parse form data to match odoo field data types = preparation for checkout_form_save()
             if values.get('checkout') and data:
                 fso_forms_obj = FsoForms()
                 parsed_form_values = fso_forms_obj._prepare_field_data(form=fso_forms_billing_fields[0].form_id,
                                                                        form_field_data=data)
                 values['checkout'].update(parsed_form_values)
+
+                # Append the mail message fields and data
+                for f_field in fso_forms_billing_fields:
+                    if f_field.type == 'mail_message':
+                        f_name = f_field.name
+                        if f_name in data:
+                            values['checkout'][f_name] = data[f_name]
 
         # Add billing fields from the website
         else:
@@ -579,13 +619,145 @@ class website_sale_donate(website_sale):
                 shippings_selector_attrs[shipping.id] = field_data
             values['shippings_selector_attrs'] = shippings_selector_attrs
 
+        # Add values['fso_forms_giftee_fields'] for form rendering
+        # Add giftee fields to values['checkout'] for checkout_form_save()
+        # --------------------------------
+        # HINT: The field prefix is set by the template: wsd_checkout_form_gifting_fields
+        #       <t t-set="field_name_prefix" t-value="giftee_"/>
+        fso_forms_giftee_fields = self.get_fso_forms_giftee_fields(product=product)
+        if fso_forms_giftee_fields:
+            # Append the fso_forms giftee field definitions for form rendering
+            values['fso_forms_giftee_fields'] = fso_forms_giftee_fields
+
+            # Prepare and append giftee form data to values['checkout'] if the giftee checkbox is enabled
+            if data and data.get('enable_giftee_checkbox', None):
+                #values['enable_giftee_checkbox'] = data.get('enable_giftee_checkbox', None)
+
+                # Extract giftee data from the form data
+                giftee_form_data = {}
+                giftee_mail_message_form_data = {}
+
+                for gf_field in fso_forms_giftee_fields:
+                    if gf_field.type not in ['model', 'mail_message']:
+                        continue
+                    f_name = gf_field.name
+                    gf_name = 'giftee_' + f_name
+                    if gf_field.type == 'model':
+                        giftee_form_data[f_name] = data.get(gf_name, None)
+                    if gf_field.type == 'mail_message':
+                        giftee_mail_message_form_data[f_name] = data.get(gf_name, None)
+
+                # Prepare the giftee form data for the odoo record
+                fso_forms_obj = FsoForms()
+                odoo_ready_giftee_form_data = fso_forms_obj._prepare_field_data(
+                    form=fso_forms_giftee_fields[0].form_id,
+                    form_field_data=giftee_form_data)
+
+                # Add the prefix again and add the giftee field data to the checkout dict in the values
+                giftee_data = {'giftee_'+k: v for k, v in odoo_ready_giftee_form_data.iteritems()}
+
+                # Add the giftee mail message data to checkout to be used in form_save
+                giftee_data.update({'giftee_'+k: v for k, v in giftee_mail_message_form_data.iteritems()})
+
+                values['checkout'].update(giftee_data)
+
         return values
+
+    def checkout_form_save(self, checkout):
+        super(website_sale_donate, self).checkout_form_save(checkout)
+
+        order = request.website.sale_get_order(force_create=1, context=request.env.context)
+
+        # Post messages to the sale order for mail_message field types
+        # ------------------------------------------------------------
+        fso_form_checkout_fields = self.get_fso_forms_billing_fields()
+        if fso_form_checkout_fields:
+            mail_message_data = {}
+            for f_field in fso_form_checkout_fields:
+                if f_field.type == 'mail_message':
+                    f_name = f_field.name
+                    form_f_name = f_name
+                    if form_f_name in checkout:
+                        mail_message_data[f_name] = checkout[form_f_name]
+
+            if mail_message_data:
+                checkout_form = fso_form_checkout_fields[0].form_id
+                try:
+                    FsoForms().post_messages(form=checkout_form, form_field_data=mail_message_data, record=order)
+                except Exception as e:
+                    _logger.error("Could not post messages %s to order %s:\n%s"
+                                  "" % (mail_message_data, order, repr(e)))
+                    pass
+
+        # Save giftee data to giftee partner, update sale order and post giftee mail_messages to sale order
+        # -------------------------------------------------------------------------------------------------
+        giftee_fields = self.get_fso_forms_giftee_fields(product=None)
+        if giftee_fields:
+
+            odoo_ready_giftee_data = {}
+            giftee_mail_message_data = {}
+
+            # Get the giftee data from the 'checkout' dict
+            for gf_field in giftee_fields:
+                if gf_field.type in ['model', 'mail_message']:
+                    f_name = gf_field.name
+                    form_f_name = 'giftee_' + f_name
+                    if form_f_name in checkout:
+                        if gf_field.type == 'model':
+                            odoo_ready_giftee_data[f_name] = checkout[form_f_name]
+                        if gf_field.type == 'mail_message':
+                            giftee_mail_message_data[f_name] = checkout[form_f_name]
+
+            # Remove the giftee from the sale order if no giftee data is available and return!
+            if not odoo_ready_giftee_data:
+                if order.giftee_partner_id:
+                    # giftee = order.giftee_partner_id
+                    order.sudo().write({'giftee_partner_id': False})
+                    # if giftee.fs_origin == 'giftee order id: ' + order.id:
+                    #     try:
+                    #         giftee.sudo().unlink()
+                    #     except:
+                    #         _logger.info("Could not delete giftee %s" % giftee.id)
+                    #         pass
+                return
+
+            # Append the lang
+            partner_lang = request.lang if request.lang in [lang.code for lang in request.website.language_ids] else None
+            if odoo_ready_giftee_data and partner_lang:
+                odoo_ready_giftee_data['lang'] = partner_lang
+
+            # TODO: Append the FRST CDS (origin) if any to the partner
+
+            if order.giftee_partner_id:
+                order.giftee_partner_id.sudo().write(odoo_ready_giftee_data)
+                _logger.info("Update giftee %s of sale order %s with data %s"
+                             % (order.giftee_partner_id.id, order.id, odoo_ready_giftee_data))
+            else:
+                # if order:
+                #     odoo_ready_giftee_data['fs_origin'] = 'giftee order id: ' + order.id
+                giftee = request.env['res.partner'].sudo().create(odoo_ready_giftee_data)
+                order.sudo().write({'giftee_partner_id': giftee.id})
+                _logger.info("Created giftee %s for sale order %s with data %s"
+                             % (giftee.id, order.id, odoo_ready_giftee_data))
+
+            # Post giftee messages to the sale order for mail_message field types
+            if giftee_mail_message_data:
+                giftee_form = giftee_fields[0].form_id
+                try:
+                    FsoForms().post_messages(form=giftee_form, form_field_data=giftee_mail_message_data,
+                                             record=order)
+                except Exception as e:
+                    _logger.error("Could not post giftee messages %s to order %s:\n%s"
+                                  "" % (giftee_mail_message_data, order, repr(e)))
+                    pass
 
     # Set mandatory billing and shipping fields
     def _get_mandatory_billing_fields(self):
         fso_forms_billing_fields = self.get_fso_forms_billing_fields()
         if fso_forms_billing_fields:
-            return [field.field_id.name for field in fso_forms_billing_fields if field.mandatory]
+            mandatory_enabled_mapped_form_fields = fso_forms_billing_fields.filtered(
+                lambda f: f.show and f.type == 'model' and f.mandatory)
+            return [field.name for field in mandatory_enabled_mapped_form_fields]
         else:
             billing_fields = request.env['website.checkout_billing_fields']
             billing_fields = billing_fields.search([('res_partner_field_id', '!=', False),
@@ -596,7 +768,9 @@ class website_sale_donate(website_sale):
     def _get_optional_billing_fields(self):
         fso_forms_billing_fields = self.get_fso_forms_billing_fields()
         if fso_forms_billing_fields:
-            return [field.field_id.name for field in fso_forms_billing_fields if not field.mandatory]
+            nonmandatory_enabled_mapped_form_fields = fso_forms_billing_fields.filtered(
+                lambda f: f.show and f.type == 'model' and not f.mandatory)
+            return [field.name for field in nonmandatory_enabled_mapped_form_fields]
         else:
             billing_fields = request.env['website.checkout_billing_fields']
             billing_fields = billing_fields.search([('res_partner_field_id', '!=', False),
@@ -966,6 +1140,13 @@ class website_sale_donate(website_sale):
         # Checkout-Page was called for the first time
         # -------------------------------------------
         if request.httprequest.method != 'POST':
+
+            # FSO_forms Custom Checkout Fields: Run checkout_values again but with the product to get the correct fields
+            product = post.get('product', None)
+            opc_checkout_vals = self.checkout_values(product=product)
+            checkout_page.qcontext.update(opc_checkout_vals)
+
+            # Add Payment page qcontext
             payment_page = self.opc_payment()
             checkout_page.qcontext.update(payment_page.qcontext)
             _logger.warning("checkout(): END, GET request (without post data)")
@@ -1069,7 +1250,7 @@ class website_sale_donate(website_sale):
     # HINT: Overwrite was necessary because of unwanted redirects e.g.: to /shop in orig. controller
     @http.route()
     def payment_validate(self, transaction_id=None, sale_order_id=None, **post):
-        _logger.info('/shop/payment/validate: START for sale_order_id: %s' % sale_order_id)
+        _logger.info('/shop/payment/validate: START for sale_order_id: %s, transaction_id: %s' % (sale_order_id, transaction_id))
         cr, uid, context = request.cr, request.uid, request.context
         sale_order_obj = request.registry['sale.order']
 
@@ -1084,9 +1265,14 @@ class website_sale_donate(website_sale):
 
         # Find payment transaction (from current session)
         if transaction_id is None:
-            tx = request.website.sale_get_transaction()
+            tx = request.website.sale_get_transaction_include_cancelled()
         else:
             tx = request.registry['payment.transaction'].browse(cr, uid, transaction_id, context=context)
+
+        if tx:
+            _logger.info('/shop/payment/validate: tx.id: %s state: %s' % (tx.id, tx.state))
+        else:
+            _logger.info('/shop/payment/validate: tx was None')
 
         # Update redirect_url_after_form_feedback from payment provider if set
         if tx and tx.acquirer_id and tx.acquirer_id.redirect_url_after_form_feedback:
@@ -1098,6 +1284,12 @@ class website_sale_donate(website_sale):
                 and tx.sale_order_id.cat_root_id \
                 and tx.sale_order_id.cat_root_id.redirect_url_after_form_feedback:
             redirect_url_after_form_feedback = tx.sale_order_id.cat_root_id.redirect_url_after_form_feedback
+
+        # Update redirect_url_after_form_feedback from the sale_order_line (by product)
+        if tx and tx.sale_order_id and tx.sale_order_id.website_order_line:
+            for line in tx.sale_order_id.website_order_line:
+                if line.product_id and line.product_id.redirect_url_after_form_feedback:
+                    redirect_url_after_form_feedback = line.product_id.redirect_url_after_form_feedback
 
         # Find sale order (from current session)
         if sale_order_id is None:
@@ -1279,3 +1471,19 @@ class website_sale_donate(website_sale):
             return {
                 'error': 'Could not get Data for Sale-Order %s. Maybe you have the wrong user rights?' % sale_order_id,
             }
+
+    @http.route(['/shop/confirm_order'], type='http', auth="public", website=True)
+    def confirm_order(self, **post):
+        # CHECK FOR HONEY POT FIELD
+        if self.tapped_into_honeypot(post):
+            return None
+
+        res = super(website_sale_donate, self).confirm_order(**post)
+        return res
+
+    def tapped_into_honeypot(self, data):
+        if data.get("hpf-1", "") != "":
+            _logger.warning("Honey pot: Cancelling /shop/confirm_order because a honey pot field had a value.")
+            return True
+
+        return False

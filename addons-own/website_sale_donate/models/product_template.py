@@ -43,14 +43,32 @@ class ProductTemplate(models.Model):
 
     # Custom Checkout Fields by product
     checkout_form_id = fields.Many2one(string="Checkout Fields Form", comodel_name='fson.form',
-                                       domain="[('product_template_ids', '!=', False)]",
-                                       help="Set custom checkout fields for this form")
+                                       domain="[('type', '=', 'checkout')]",
+                                       help="Set custom checkout fields for this product")
+
+    # Custom Checkout Giftee Fields by product
+    giftee_form_id = fields.Many2one(string="Giftee Fields Form", comodel_name='fson.form',
+                                     domain="[('type', '=', 'giftee')]",
+                                     help="Set custom giftee fields for this product")
+
+    giftee_email_template = fields.Many2one(string="Giftee Info E-Mail",
+                                            comodel_name='email.template',
+                                            inverse_name="giftee_product_template_ids",
+                                            copy=True)
+
+    giftee_checkbox_text = fields.Char(string="Giftee-Checkbox Text", translate=True)
+
+    giftee_is_mandatory = fields.Boolean(string="Giftee form is mandatory",
+                                         help="If checked, the giftee form must be filled in")
 
     # Custom donation input template (arbitrary price and donation buttons in checkout box)
     # HINT: dit stands for donation input template
     donation_input_template = fields.Selection(string="Donation Input Template",
                                                selection=[('website_sale_donate.dit_advanced', 'Advanced'),
                                                           ])
+
+    auto_recompute_price_donate = fields.Boolean(string="Auto recompute Price Donate",
+                                                 help="Recompute price-donate value on payment interval change")
 
     # Custom page themes
     # ATTENTION: The name of the theme will be added to the <body> tag if you are on the product page
@@ -67,6 +85,14 @@ class ProductTemplate(models.Model):
     clear_cart = fields.Boolean(string="Clear Shopping Cart",
                                 help="Clear all other products from the shopping cart (sale order) when this "
                                      "product is added")
+
+    # Thank you page per product
+    redirect_url_after_form_feedback = fields.Char(string='Redirect URL after PP Form-Feedback',
+                                                   help='Redirect to this URL after processing the Answer of the '
+                                                        'Payment Provider instead of /shop/confirmation_static. '
+                                                        '(This is the thank you page after a successful '
+                                                        'donation/purchase)',
+                                                   translate=True)
 
     @api.constrains('website_theme', 'public_categ_ids')
     def contraint_website_theme(self):
@@ -113,7 +139,6 @@ class ProductTemplate(models.Model):
 
         return super(ProductTemplate, self).copy(default=default)
 
-
     # Custom Checkout Fields Form Button Action
     # -----------------------------------------
     # TODO: Add frontend validations
@@ -124,7 +149,8 @@ class ProductTemplate(models.Model):
                 # Create the fso form
                 res_partner_model = self.env['ir.model'].search([('model', '=', 'res.partner')])
 
-                form_vals = {'name': _('Checkout fields form for product %s (id %s)') % (r.name, r.id),
+                form_vals = {'type': 'checkout',
+                             'name': _('Checkout fields form for product %s (id %s)') % (r.name, r.id),
                              'model_id': res_partner_model.id,
                              'submit_button_text': _('Continue'),
                              'clear_session_data_after_submit': True,
@@ -138,25 +164,29 @@ class ProductTemplate(models.Model):
                 form = self.env['fson.form'].create(form_vals)
 
                 # Create the fso form fields
-                f_fields = {'firstname': {'sequence': 10,
+                f_fields = {'firstname': {'type': 'model',
+                                          'sequence': 10,
                                           'show': True,
                                           'label': _('Firstname'),
                                           'mandatory': False,
                                           'css_classes': 'col-sm-6 col-md-6 col-lg-6',
                                           'clearfix': False},
-                            'lastname': {'sequence': 20,
+                            'lastname': {'type': 'model',
+                                         'sequence': 20,
                                          'show': True,
                                          'label': _('Lastname'),
                                          'mandatory': True,
                                          'css_classes': 'col-sm-6 col-md-6 col-lg-6',
                                          'clearfix': True},
-                            'email': {'sequence': 30,
+                            'email': {'type': 'model',
+                                      'sequence': 30,
                                       'label': _('E-Mail'),
                                       'show': True,
                                       'mandatory': True,
                                       'css_classes': 'col-sm-12 col-md-12 col-lg-12',
                                       'clearfix': True},
-                            'birthdate_web': {'sequence': 40,
+                            'birthdate_web': {'type': 'model',
+                                              'sequence': 40,
                                               'label': _('Birthdate'),
                                               'show': True,
                                               'mandatory': False,
@@ -164,13 +194,15 @@ class ProductTemplate(models.Model):
                                               'clearfix': True,
                                               'information': """ Um ihre Spenden von der Steuer absetzten zu können 
                                                                  ist die Angabe ihres Geburtsdatums erforderlich. """},
-                            'country_id': {'sequence': 50,
+                            'country_id': {'type': 'model',
+                                           'sequence': 50,
                                            'label': _('Country'),
                                            'show': True,
                                            'mandatory': True,
                                            'css_classes': 'col-sm-12 col-md-12 col-lg-12',
                                            'clearfix': True},
-                            'donation_deduction_optout_web': {'sequence': 60,
+                            'donation_deduction_optout_web': {'type': 'model',
+                                                              'sequence': 60,
                                                               'label': _('Meine Spenden nicht absetzen'),
                                                               'show': True,
                                                               'mandatory': False,
@@ -188,5 +220,77 @@ class ProductTemplate(models.Model):
                                                           ('name', '=', f)]).id
                     form_field_obj.create(vals)
 
-                # Add this form to the record
+                # Add this form to the product template
                 r.write({'checkout_form_id': form.id})
+
+
+    @api.multi
+    def create_giftee_fields_form(self):
+        for r in self:
+            if not r.giftee_form_id:
+                # Create the fso form
+                res_partner_model = self.env['ir.model'].search([('model', '=', 'res.partner')])
+
+                form_vals = {'type': 'giftee',
+                             'name': _('Giftee fields form for product %s (id %s)') % (r.name, r.id),
+                             'model_id': res_partner_model.id,
+                             'submit_button_text': _('Continue'),
+                             'clear_session_data_after_submit': True,
+                             'edit_existing_record_if_logged_in': False,
+                             'email_only': False,
+                             'thank_you_page_edit_data_button': False,
+                             #'thank_you_page_edit_redirect': '/fso/subscription/%s' % r.id,
+                             #'submission_url': '/fso/subscription/%s' % r.id
+                             }
+
+                form = self.env['fson.form'].create(form_vals)
+
+                # Create the fso form fields
+                f_fields = {'firstname': {'type': 'model',
+                                          'sequence': 10,
+                                          'show': True,
+                                          'label': _('Firstname'),
+                                          'mandatory': False,
+                                          'css_classes': 'col-sm-6 col-md-6 col-lg-6',
+                                          'clearfix': False},
+                            'lastname': {'type': 'model',
+                                         'sequence': 20,
+                                         'show': True,
+                                         'label': _('Lastname'),
+                                         'mandatory': True,
+                                         'css_classes': 'col-sm-6 col-md-6 col-lg-6',
+                                         'clearfix': True},
+                            'email': {'type': 'model',
+                                      'sequence': 30,
+                                      'label': _('E-Mail'),
+                                      'show': True,
+                                      'mandatory': True,
+                                      'css_classes': 'col-sm-12 col-md-12 col-lg-12',
+                                      'clearfix': True},
+                            'birthdate_web': {'type': 'model',
+                                              'sequence': 40,
+                                              'label': _('Birthdate'),
+                                              'show': True,
+                                              'mandatory': False,
+                                              'css_classes': 'col-sm-12 col-md-12 col-lg-12',
+                                              'clearfix': True,
+                                              'information': """ Um ihre Spenden von der Steuer absetzten zu können 
+                                                                 ist die Angabe ihres Geburtsdatums erforderlich. """},
+                            'country_id': {'type': 'model',
+                                           'sequence': 50,
+                                           'label': _('Country'),
+                                           'show': True,
+                                           'mandatory': True,
+                                           'css_classes': 'col-sm-12 col-md-12 col-lg-12',
+                                           'clearfix': True},
+                            }
+                fields_obj = self.env['ir.model.fields']
+                form_field_obj = self.env['fson.form_field']
+                for f, vals in f_fields.iteritems():
+                    vals['form_id'] = form.id
+                    vals['field_id'] = fields_obj.search([('model_id', '=', res_partner_model.id),
+                                                          ('name', '=', f)]).id
+                    form_field_obj.create(vals)
+
+                # Add this form to the product template
+                r.write({'giftee_form_id': form.id})

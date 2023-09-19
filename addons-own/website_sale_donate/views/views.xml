@@ -111,7 +111,7 @@
                             </group>
 
                             <group colspan="2" string="Webshop: Custom Checkout Fields">
-                                <field name="checkout_form_id" readonly="1"/>
+                                <field name="checkout_form_id"/>
                                 <button name="create_checkout_fields_form" type="object"
                                         string="Custom Checkout Fields"
                                         colspan="2"
@@ -119,8 +119,21 @@
                                 />
                             </group>
 
+                            <group colspan="2" string="Webshop: Enable Gifting Feature">
+                                <field name="giftee_form_id"/>
+                                <button name="create_giftee_fields_form" type="object"
+                                        string="Create Giftee-Fields-Form"
+                                        colspan="2"
+                                        attrs="{'invisible': [('giftee_form_id', '!=', False)]}"
+                                />
+                                <field name="giftee_checkbox_text" attrs="{'invisible': [('giftee_form_id', '=', False)]}"/>
+                                <field name="giftee_is_mandatory" attrs="{'invisible': [('giftee_form_id', '=', False)]}"/>
+                                <field name="giftee_email_template" attrs="{'invisible': [('giftee_form_id', '=', False)]}"/>
+                            </group>
+
                             <group string="Webshop: Product Page" colspan="2">
                                 <field name="clear_cart"/>
+                                <field name="redirect_url_after_form_feedback"/>
                                 <field name="product_page_template"/>
                                 <img colspan="2"
                                      src="/website_sale_donate/static/src/img/ppt_donate.png"
@@ -161,6 +174,7 @@
                                 <!-- Deprecated and therefore disabled - only left here for reference -->
                                 <!--<field name="payment_interval_ids" widget="many2many_tags" placeholder="Payment Intervals..."/>-->
                                 <field name="payment_interval_default"/>
+                                <field name="auto_recompute_price_donate"/>
                                 <field name="payment_interval_as_selection"/>
                                 <field name="payment_interval_lines_ids">
                                     <tree string="Payment Intervals" default_order="sequence" editable="bottom">
@@ -294,6 +308,7 @@
                         <field name="sequence"/>
                         <field name="name"/>
                         <field name="xml_id"/>
+                        <field name="length_in_months"/>
                     </group>
                 </form>
             </field>
@@ -306,6 +321,7 @@
                     <field name="sequence" widget="handle"/>
                     <field name="name"/>
                     <field name="xml_id"/>
+                    <field name="length_in_months"/>
                 </tree>
             </field>
         </record>
@@ -315,6 +331,7 @@
             <field name="arch" type="xml">
                 <search string="Payment Intervals">
                     <field name="name"/>
+                    <field name="length_in_months"/>
                 </search>
             </field>
         </record>
@@ -344,6 +361,7 @@
                     <field name="submit_button_class"/>
                     <field name="redirect_url_after_form_feedback"/>
                     <field name="do_not_send_status_email"/>
+                    <field name="base_url_for_form_feedback"/>
                 </field>
                 <!-- Add the Name and the Icon (used in website too) before group name="acquirer_base" -->
                 <xpath expr="//group[@name='acquirer_base']" position="before">

@@ -14,7 +14,10 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <group>
+                    <group name="subscription_name">
+                        <field name="subscription_name"/>
+                    </group>
+                    <group name="base_data">
                         <field name="zgruppedetail_id"/>
                         <field name="partner_id"/>
                         <field name="steuerung_bit"/>
@@ -25,6 +28,17 @@
                         <field name="bestaetigt_typ"/>
                         <field name="bestaetigt_herkunft"/>
                     </group>
+                    <notebook>
+                        <page string="System" name="system">
+                            <group>
+                                <field name="id"/>
+                                <field name="create_uid"/>
+                                <field name="create_date"/>
+                                <field name="write_uid"/>
+                                <field name="write_date"/>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
@@ -37,6 +51,7 @@
         <field name="arch" type="xml">
             <tree string="PersonGruppe">
                 <field name="id"/>
+                <field name="subscription_name"/>
                 <field name="zgruppedetail_id"/>
                 <field name="partner_id"/>
                 <field name="steuerung_bit"/>
@@ -58,6 +73,7 @@
         <field name="arch" type="xml">
             <search string="PersonGruppe">
                 <field name="id"/>
+                <field name="subscription_name"/>
                 <field name="zgruppedetail_id"/>
                 <field name="partner_id"/>
                 <field name="steuerung_bit"/>
@@ -126,7 +142,7 @@
     <!-- https://www.odoo.com/de_DE/forum/hilfe-1/question/how-do-you-define-specific-not-default-views-for-each-view-mode-type-form-tree-etc-in-act-window-xml-76275 -->
     <!-- https://www.odoo.com/de_DE/forum/hilfe-1/question/multiple-create-form-views-same-model-107193 -->
     <record id="frst_persongruppe_action" model="ir.actions.act_window" >
-        <field name="name">PersonGruppe</field>
+        <field name="name">Personengruppen Anmeldungen</field>
         <field name="res_model">frst.persongruppe</field>
         <field name="type">ir.actions.act_window</field>
         <field name="view_type">form</field>

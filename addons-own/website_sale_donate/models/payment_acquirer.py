@@ -23,3 +23,9 @@ class PaymentAcquirer(models.Model):
                                               help='Will not send website_sale_donate.email_template_webshop. '
                                                    'Setting used in payment provider controllers!')
 
+    post_msg = fields.Html(translate=True)
+    base_url_for_form_feedback = fields.Char(string='Override the system base URL with this URL',
+                                             help='The payment provider is told to send the feedback '
+                                                  'calls to this base URL instead of the system base URL. '
+                                                  'This allows support for different domains for providers.',
+                                             translate=True)

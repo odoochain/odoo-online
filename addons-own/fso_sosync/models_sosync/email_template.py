@@ -21,3 +21,6 @@ class EmailTemplateSosync(models.Model):
 
     fso_email_html_parsed = fields.Text(sosync="fson-to-frst")      # e-mail body html to be used by multimailer
 
+    fso_email_text = fields.Text(sosync="fson-to-frst")            # e-mail text only version
+
+    active = fields.Boolean(sosync="fson-to-frst")

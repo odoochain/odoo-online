@@ -15,6 +15,7 @@ from openerp.addons.payment_ogonedadi.data import ogonedadi
 from openerp.osv import osv, fields
 from openerp.tools import float_round
 from openerp.tools.float_utils import float_compare, float_repr
+from openerp import api
 
 _logger = logging.getLogger(__name__)
 
@@ -52,6 +53,13 @@ class PaymentAcquirerOgonedadi(osv.Model):
         'ogonedadi_brand': fields.char('Payment Method Type e.g. VISA (BRAND)'),
         'ogonedadi_tp': fields.char('Payment Form Template URL (TP)')
     }
+
+    @api.multi
+    def name_get(self):
+        return [
+            (record.id, "%s (%s)" % (record.name, record.ogonedadi_pspid) if record.ogonedadi_pspid else record.name)
+            for record in self
+        ]
 
     def _ogonedadi_generate_shasign(self, acquirer, inout, values):
         """ Generate the shasign for incoming or outgoing communications.
@@ -145,6 +153,10 @@ class PaymentAcquirerOgonedadi(osv.Model):
     def ogonedadi_form_generate_values(self, cr, uid, id, partner_values, tx_values, context=None):
         base_url = self.pool['ir.config_parameter'].get_param(cr, uid, 'web.base.url')
         acquirer = self.browse(cr, uid, id, context=context)
+
+        # Override base URL with acquirer base_url_for_form_feedback
+        if acquirer.base_url_for_form_feedback:
+            base_url = acquirer.base_url_for_form_feedback
 
         ogonedadi_tx_values = dict(tx_values)
         # AMOUNT calculation changed! see: https://github.com/odoo/odoo/commit/7c2521a79bc9443adab1bc63007e70661a8c22b7

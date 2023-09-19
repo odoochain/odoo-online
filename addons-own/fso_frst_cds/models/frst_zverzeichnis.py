@@ -7,10 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# Fundraising Studio group folders
-# zGruppe are "folders" for groups that determine for what model a zGruppeDetail is valid
+# Fundraising Studio campaign directories
+# zVerzeichnis are directories for the campaign system
 class FRSTzVerzeichnis(models.Model):
     _name = "frst.zverzeichnis"
+    _description = "Fundraising Studio CDS"
     _inherit = ['mail.thread']
     _rec_name = "verzeichnisname"
 

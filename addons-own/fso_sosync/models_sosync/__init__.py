@@ -6,6 +6,7 @@ import res_company
 import res_users
 import res_groups
 import res_partner_fstoken
+import res_partner_fstoken_log
 
 # Product related
 import payment_acquierer
@@ -42,3 +43,6 @@ import mail_mass_mailing_contact
 
 # FRST CDS
 import frst_zverzeichnis
+
+# Chatter Messages
+import mail_message

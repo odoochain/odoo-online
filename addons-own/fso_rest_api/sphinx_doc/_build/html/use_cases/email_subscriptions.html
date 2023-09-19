@@ -1,0 +1,984 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Email Subscriptions &mdash; Fundraising Studio REST API o8 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/segment.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/menu.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/sphinx_tabs/tabs.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/copybutton.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_tabs/semantic-ui-2.4.1/tab.min.js"></script>
+        <script src="../_static/sphinx_tabs/tabs.js"></script>
+        <script src="../_static/clipboard.min.js"></script>
+        <script src="../_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Managing products" href="managing_products.html" />
+    <link rel="prev" title="Managing Partner" href="managing_partner.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> Fundraising Studio REST API
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../basics/index.html">Basics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../basics/introduction.html">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../basics/introduction.html#where-to-start">Where to start?</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../basics/tutorial.html">Tutorial</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../basics/tutorial.html#prerequisites">Prerequisites</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/tutorial.html#swagger-ui">Swagger UI</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../basics/tutorial.html#authorize-yourself">1. Authorize yourself</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../basics/tutorial.html#try-the-routes">2. Try the routes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/tutorial.html#calling-methods">Calling Methods</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../basics/authorization.html">Authorization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../basics/access_security.html">Access and Security</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../basics/access_security.html#user-with-restricted-rights">User with restricted rights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/access_security.html#security-advisory">Security advisory</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../basics/gotchas_conventions.html">Gotchas and Conventions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#charset">Charset</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#content-type">Content-Type</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#calling-model-methods">Calling model methods</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#date-and-datetime-fields">Date and Datetime Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#locale">Locale</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/gotchas_conventions.html#language">Language</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../basics/usage_limits_logging.html">Limits, Costs, Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../basics/usage_limits_logging.html#usage-limits">Usage Limits</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/usage_limits_logging.html#usage-costs">Usage Costs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/usage_limits_logging.html#repair-costs">Repair Costs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../basics/usage_limits_logging.html#logging">Logging</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../models/index.html">Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../models/models_overview.html">Models Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#country">Country</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#currency">Currency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#payment-intervals">Payment intervals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#payment-interval-lines">Payment interval lines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#partner">Partner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#email-addresses">Email Addresses</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#groups">Groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#group-subscriptions">Group Subscriptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#fundraising-studio-cds">Fundraising Studio CDS</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#products">Products</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#sale-orders-donations">Sale orders &amp; Donations</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#payment-acquirer">Payment acquirer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#payment-transaction">Payment transaction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#mail-message-comments">Mail Message (Comments)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/models_overview.html#mail-message-subtype">Mail Message Subtype</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/res_country.html">res.country</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_country.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_country.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_country.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/res_currency.html">res.currency</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_currency.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_currency.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_currency.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/product_payment_interval.html">product.payment_interval</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/product_payment_interval.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/product_payment_interval.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/product_payment_interval.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/product_payment_interval_lines.html">product.payment_interval_lines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/product_payment_interval_lines.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/product_payment_interval_lines.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/product_payment_interval_lines.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/res_partner.html">res.partner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_partner.html#required-fields">Required Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_partner.html#fields">Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#id"><code class="docutils literal notranslate"><span class="pre">id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#firstname"><code class="docutils literal notranslate"><span class="pre">firstname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#lastname"><code class="docutils literal notranslate"><span class="pre">lastname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#name-zwei"><code class="docutils literal notranslate"><span class="pre">name_zwei</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#company-name-web"><code class="docutils literal notranslate"><span class="pre">company_name_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#birthdate-web"><code class="docutils literal notranslate"><span class="pre">birthdate_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#frst-zverzeichnis-id"><code class="docutils literal notranslate"><span class="pre">frst_zverzeichnis_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#gender"><code class="docutils literal notranslate"><span class="pre">gender</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#title-web"><code class="docutils literal notranslate"><span class="pre">title_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#phone"><code class="docutils literal notranslate"><span class="pre">phone</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#mobile"><code class="docutils literal notranslate"><span class="pre">mobile</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#fax"><code class="docutils literal notranslate"><span class="pre">fax</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#street"><code class="docutils literal notranslate"><span class="pre">street</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#street-number-web"><code class="docutils literal notranslate"><span class="pre">street_number_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#city"><code class="docutils literal notranslate"><span class="pre">city</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#zip"><code class="docutils literal notranslate"><span class="pre">zip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#country-id"><code class="docutils literal notranslate"><span class="pre">country_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#email"><code class="docutils literal notranslate"><span class="pre">email</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#main-personemail-id"><code class="docutils literal notranslate"><span class="pre">main_personemail_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#frst-personemail-ids"><code class="docutils literal notranslate"><span class="pre">frst_personemail_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#newsletter-web"><code class="docutils literal notranslate"><span class="pre">newsletter_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#gdpr-accepted"><code class="docutils literal notranslate"><span class="pre">gdpr_accepted</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#donation-deduction-optout-web"><code class="docutils literal notranslate"><span class="pre">donation_deduction_optout_web</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#bpk-forced-firstname"><code class="docutils literal notranslate"><span class="pre">bpk_forced_firstname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#bpk-forced-lastname"><code class="docutils literal notranslate"><span class="pre">bpk_forced_lastname</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#bpk-forced-birthdate"><code class="docutils literal notranslate"><span class="pre">bpk_forced_birthdate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#bpk-forced-zip"><code class="docutils literal notranslate"><span class="pre">bpk_forced_zip</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#bpk-forced-street"><code class="docutils literal notranslate"><span class="pre">bpk_forced_street</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_partner.html#special-fields">Special Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#res-partner-nob-email"><code class="docutils literal notranslate"><span class="pre">email</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/res_partner.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/res_partner.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/frst_personemail.html">frst.personemail</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_personemail.html#required-fields">Required fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_personemail.html#non-obvious-behaviours">Non obvious behaviours</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_personemail.html#state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_personemail.html#last-email-update"><code class="docutils literal notranslate"><span class="pre">last_email_update</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_personemail.html#forced-main-address"><code class="docutils literal notranslate"><span class="pre">forced_main_address</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_personemail.html#main-address"><code class="docutils literal notranslate"><span class="pre">main_address</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_personemail.html#gueltig-von-gueltig-bis"><code class="docutils literal notranslate"><span class="pre">gueltig_von</span></code>, <code class="docutils literal notranslate"><span class="pre">gueltig_bis</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/frst_groups.html">frst.zgruppe, frst.zgruppedetail</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_groups.html#frst-zgruppe">frst.zgruppe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#special-fields">Special Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#gruppe-lang"><code class="docutils literal notranslate"><span class="pre">gruppe_lang</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#tabellentyp-id"><code class="docutils literal notranslate"><span class="pre">tabellentyp_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#gui-anzeigen"><code class="docutils literal notranslate"><span class="pre">gui_anzeigen</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_groups.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_groups.html#frst-zgruppedetail">frst.zgruppedetail</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#required-fields">Required Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#id3">Special Fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#zgruppe-id"><code class="docutils literal notranslate"><span class="pre">zgruppe_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#geltungsbereich"><code class="docutils literal notranslate"><span class="pre">geltungsbereich</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#bestaetigung-erforderlich"><code class="docutils literal notranslate"><span class="pre">bestaetigung_erforderlich</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#bestaetigung-typ"><code class="docutils literal notranslate"><span class="pre">bestaetigung_typ</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_groups.html#id4">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_groups.html#id5"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/frst_group_subscriptions.html">frst.persongruppe, frst.personemailgruppe</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_group_subscriptions.html#common-fields">Common fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#steuerung-bit"><code class="docutils literal notranslate"><span class="pre">steuerung_bit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#gueltig-von-gueltig-bis"><code class="docutils literal notranslate"><span class="pre">gueltig_von</span></code>, <code class="docutils literal notranslate"><span class="pre">gueltig_bis</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#bestaetigt-am-um"><code class="docutils literal notranslate"><span class="pre">bestaetigt_am_um</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#bestaetigt-typ"><code class="docutils literal notranslate"><span class="pre">bestaetigt_typ</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#bestaetigt-herkunft"><code class="docutils literal notranslate"><span class="pre">bestaetigt_herkunft</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_group_subscriptions.html#common-required-fields">Common required fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#zgruppedetail-id"><code class="docutils literal notranslate"><span class="pre">zgruppedetail_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_group_subscriptions.html#frst-persongruppe">frst.persongruppe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#required-fields">Required fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#partner-id"><code class="docutils literal notranslate"><span class="pre">partner_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_group_subscriptions.html#frst-personemailgruppe">frst.personemailgruppe</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#id4">Required fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_group_subscriptions.html#frst-personemail-id"><code class="docutils literal notranslate"><span class="pre">frst_personemail_id</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/frst_zverzeichnis.html">frst.zverzeichnis</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_zverzeichnis.html#required-fields">Required Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_zverzeichnis.html#special-fields">Special Fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#verzeichnistyp-id"><code class="docutils literal notranslate"><span class="pre">verzeichnistyp_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#bezeichnungstyp-id"><code class="docutils literal notranslate"><span class="pre">bezeichnungstyp_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#parent-id"><code class="docutils literal notranslate"><span class="pre">parent_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#startdatum"><code class="docutils literal notranslate"><span class="pre">startdatum</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#endedatum"><code class="docutils literal notranslate"><span class="pre">endedatum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/frst_zverzeichnis.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/frst_zverzeichnis.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/products.html">product.template, product.product</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/products.html#product-template">product.template</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/products.html#special-fields">Special fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#description-sale"><code class="docutils literal notranslate"><span class="pre">description_sale</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#fs-product-type"><code class="docutils literal notranslate"><span class="pre">fs_product_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#type"><code class="docutils literal notranslate"><span class="pre">type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#product-variant-ids"><code class="docutils literal notranslate"><span class="pre">product_variant_ids</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#payment-interval-lines-ids"><code class="docutils literal notranslate"><span class="pre">payment_interval_lines_ids</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/products.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/products.html#product-product">product.product</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/products.html#id3">Special fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#product-tmpl-id"><code class="docutils literal notranslate"><span class="pre">product_tmpl_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/products.html#id4">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/products.html#id5"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/sale_orders.html">sale.order, sale.order.line</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../models/sale_orders.html#sale-order">sale.order</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/sale_orders.html#special-fields">Special fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#name"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#date-order"><code class="docutils literal notranslate"><span class="pre">date_order</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#amount-total"><code class="docutils literal notranslate"><span class="pre">amount_total</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#partner-id"><code class="docutils literal notranslate"><span class="pre">partner_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#giftee-partner-id"><code class="docutils literal notranslate"><span class="pre">giftee_partner_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#payment-tx-id"><code class="docutils literal notranslate"><span class="pre">payment_tx_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#payment-acquirer-id"><code class="docutils literal notranslate"><span class="pre">payment_acquirer_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#order-line"><code class="docutils literal notranslate"><span class="pre">order_line</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/sale_orders.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/sale_orders.html#sale-order-line">sale.order.line</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/sale_orders.html#id3">Special fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#id4"><code class="docutils literal notranslate"><span class="pre">name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#id5"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#order-id"><code class="docutils literal notranslate"><span class="pre">order_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#product-id"><code class="docutils literal notranslate"><span class="pre">product_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#fs-origin"><code class="docutils literal notranslate"><span class="pre">fs_origin</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#price-unit"><code class="docutils literal notranslate"><span class="pre">price_unit</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#product-uos-qty"><code class="docutils literal notranslate"><span class="pre">product_uos_qty</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#price-donate"><code class="docutils literal notranslate"><span class="pre">price_donate</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#payment-interval-id"><code class="docutils literal notranslate"><span class="pre">payment_interval_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#zgruppedetail-ids"><code class="docutils literal notranslate"><span class="pre">zgruppedetail_ids</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/sale_orders.html#id6">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/sale_orders.html#id7"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/payment_acquirer.html">payment.acquirer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/payment_acquirer.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/payment_acquirer.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_acquirer.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/payment_transaction.html">payment.transaction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/payment_transaction.html#special-fields">Special fields</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#acquirer-id"><code class="docutils literal notranslate"><span class="pre">acquirer_id</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#state"><code class="docutils literal notranslate"><span class="pre">state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#reference"><code class="docutils literal notranslate"><span class="pre">reference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#acquirer-reference"><code class="docutils literal notranslate"><span class="pre">acquirer_reference</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#esr-reference-number"><code class="docutils literal notranslate"><span class="pre">esr_reference_number</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#amount"><code class="docutils literal notranslate"><span class="pre">amount</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-provider-name"><code class="docutils literal notranslate"><span class="pre">consale_provider_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method"><code class="docutils literal notranslate"><span class="pre">consale_method</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-other"><code class="docutils literal notranslate"><span class="pre">consale_method_other</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-brand"><code class="docutils literal notranslate"><span class="pre">consale_method_brand</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-directdebit-provider"><code class="docutils literal notranslate"><span class="pre">consale_method_directdebit_provider</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-account-owner"><code class="docutils literal notranslate"><span class="pre">consale_method_account_owner</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-account-iban"><code class="docutils literal notranslate"><span class="pre">consale_method_account_iban</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-account-bic"><code class="docutils literal notranslate"><span class="pre">consale_method_account_bic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-method-account-bank"><code class="docutils literal notranslate"><span class="pre">consale_method_account_bank</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#consale-recurring-payment-provider"><code class="docutils literal notranslate"><span class="pre">consale_recurring_payment_provider</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../models/payment_transaction.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/payment_transaction.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/mail_message.html">mail.message</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../models/mail_message.html#fields">Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../models/mail_message.html#methods">Methods</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../models/mail_message.html#search"><code class="docutils literal notranslate"><span class="pre">search</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../models/mail_message.html#mail-message-subtype">mail.message.subtype</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../searching/index.html">Searching</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../searching/searching.html">Searching</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../searching/searching.html#search-basics">Search Basics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../searching/searching.html#name-search">Name search</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../searching/searching.html#combining-criteria-with-or">Combining criteria with <code class="docutils literal notranslate"><span class="pre">OR</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="../searching/searching.html#negate-an-operator">Negate an operator</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../searching/searching.html#searching-for-related-data">Searching for related data</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../searching/searching.html#search-method-options"><code class="docutils literal notranslate"><span class="pre">search</span></code> method options</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../searching/search_domain.html">Search Domain</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="../searching/search_domain.html#domain-criterion">domain criterion</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="../searching/search_domain.html#field-name-str"><code class="docutils literal notranslate"><span class="pre">field_name</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../searching/search_domain.html#operator-str"><code class="docutils literal notranslate"><span class="pre">operator</span></code> (<code class="docutils literal notranslate"><span class="pre">str</span></code>)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../searching/search_domain.html#value"><code class="docutils literal notranslate"><span class="pre">value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../searching/search_domain.html#logical-operators">Logical Operators</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Use Cases</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="managing_partner.html">Managing Partner</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="managing_partner.html#search-for-partner">Search for partner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_partner.html#read-the-partner-data">Read the partner data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_partner.html#updating-partner-data">Updating partner data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_partner.html#creating-a-partner">Creating a partner</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_partner.html#deleting-a-partner">Deleting a partner</a></li>
+</ul>
+</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Email Subscriptions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#search-for-email-group-folders">Search for email group folders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#search-for-email-groups">Search for email groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-email-groups">Create email groups</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#subscribe-to-a-newsletter">Subscribe to a newsletter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#unsubscribe-from-a-newsletter">Unsubscribe from a newsletter</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="managing_products.html">Managing products</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="managing_products.html#search-for-products">Search for products</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_products.html#read-the-product-data">Read the product data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_products.html#updating-product-data">Updating product data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_products.html#creating-a-product">Creating a product</a></li>
+<li class="toctree-l3"><a class="reference internal" href="managing_products.html#deleting-a-product">Deleting a product</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="submitting_donations.html">Submitting Donations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="submitting_donations.html#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="submitting_donations.html#example">Example</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Fundraising Studio REST API</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="index.html">Use Cases</a> &raquo;</li>
+        
+      <li>Email Subscriptions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/use_cases/email_subscriptions.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <div class="rst-breadcrumbs-buttons" role="navigation" aria-label="breadcrumb navigation">
+      
+        <a href="managing_products.html" class="btn btn-neutral float-right" title="Managing products" accesskey="n">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+      
+      
+        <a href="managing_partner.html" class="btn btn-neutral float-left" title="Managing Partner" accesskey="p"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+      
+  </div>
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="email-subscriptions">
+<span id="id1"></span><h1>Email Subscriptions<a class="headerlink" href="#email-subscriptions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Relevant models:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">frst.zgruppe</span></code>: group folder, consider it like a category. Only type <strong>email</strong> (<code class="docutils literal notranslate"><span class="pre">tabellentyp_id</span> <span class="pre">=</span> <span class="pre">100110</span></code>)
+is relevant in this section. It contains multiple groups. See <a class="reference internal" href="../models/frst_groups.html#frst-groups"><span class="std std-ref">frst.zgruppe, frst.zgruppedetail</span></a> for details.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frst.zgruppedetail</span></code>: actual email group or list. A group belongs to exactly one <code class="docutils literal notranslate"><span class="pre">frst.zgruppe</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">res.partner</span></code>: person, it contains the main email address and foreign key</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">frst.personemailgruppe</span></code>: subscription or assignment of an email to a group</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Groups are not limited to newsletter groups. They can also be qualifications or classifications used in statistics.
+In this section however, the focus is on newsletter groups.</p>
+</div>
+</div>
+<div class="section" id="search-for-email-group-folders">
+<h2>Search for email group folders<a class="headerlink" href="#search-for-email-group-folders" title="Permalink to this headline">¶</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This should not be done from web forms directly. Implement this in your management backend and
+simply cache the data locally.</p>
+</div>
+<p>To search for email group folders we send a <code class="docutils literal notranslate"><span class="pre">PATCH</span></code> request to the route <code class="docutils literal notranslate"><span class="pre">/frst.zgruppe/call/search</span></code> to call the
+<code class="docutils literal notranslate"><span class="pre">search</span></code> method and we provide a <a class="reference internal" href="../searching/search_domain.html#search-domain"><span class="std std-ref">search domain</span></a> as the first positional argument
+of the search method to specify our search conditions.</p>
+<p>The example searches for group folders of <code class="docutils literal notranslate"><span class="pre">tabellentyp_id</span></code> with value <code class="docutils literal notranslate"><span class="pre">100110</span></code>, returning all folders that
+contain groups that are applicable for email addresses.</p>
+<div class="sphinx-tabs docutils container">
+<div class="ui top attached tabular menu sphinx-menu docutils container">
+<div class="active item sphinx-data-tab-UHl0aG9u docutils container">
+<div class="docutils container">
+<p>Python</p>
+</div>
+</div>
+</div>
+<div class="ui bottom attached sphinx-tab tab segment code-tab sphinx-data-tab-UHl0aG9u active docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fundraising Studio REST API Examples</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span>  <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="c1"># API Base URL</span>
+<span class="n">api_base_url</span> <span class="o">=</span> <span class="s2">&quot;http://demo.local.com/api/v1/frst&quot;</span>
+
+<span class="c1"># Prepare Authorization</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;bb3479ed-2193-47ac-8a41-3122344dd89e&#39;</span><span class="p">)</span>
+
+<span class="c1"># Search for group folders that are applicable for emails (tabellentyp_id = 100110)</span>
+<span class="hll"><span class="n">search_domain</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;tabellentyp_id&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">100110</span><span class="p">)]</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.zgruppe/call/search&#39;</span><span class="p">,</span>
+</span><span class="hll">                          <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                          <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">search_domain</span><span class="p">]},</span>
+</span><span class="hll">                          <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+<span class="c1"># Returns list of frst.zgruppe ids:</span>
+<span class="c1"># print(response.content)</span>
+<span class="c1"># &gt;&gt;&gt; b&#39;[30150, 30200]&#39;</span>
+
+<span class="c1"># Parse the JSON response into an object</span>
+<span class="n">group_id_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+<span class="c1"># Cycle all IDs and request the full object</span>
+<span class="k">for</span> <span class="n">group_id</span> <span class="ow">in</span> <span class="n">group_id_list</span><span class="p">:</span>
+<span class="hll">    <span class="c1"># Request the group with the current ID</span>
+</span><span class="hll">    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.zgruppe/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">group_id</span><span class="p">,</span>
+</span><span class="hll">                            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                            <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+    <span class="c1"># Parse the response into an object</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="c1"># Print the name of the group</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;gruppe_lang&quot;</span><span class="p">]))</span>
+
+<span class="c1"># The loop prints the group folders, for example:</span>
+<span class="c1"># &gt;&gt;&gt; 30150: Herkunft</span>
+<span class="c1"># &gt;&gt;&gt; 30200: Newsletter</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="search-for-email-groups">
+<h2>Search for email groups<a class="headerlink" href="#search-for-email-groups" title="Permalink to this headline">¶</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This should not be done from web forms directly. Implement this in your management backend and
+simply cache the data locally.</p>
+</div>
+<p>Once you have picked a desired group folder, for example <code class="docutils literal notranslate"><span class="pre">30200</span></code> (<code class="docutils literal notranslate"><span class="pre">Newsletter</span></code>), you can search for
+actual groups inside the group folder.</p>
+<p>To search for email groups we send a <code class="docutils literal notranslate"><span class="pre">PATCH</span></code> request to the route <code class="docutils literal notranslate"><span class="pre">/frst.zgruppedetail/call/search</span></code> to call the
+<code class="docutils literal notranslate"><span class="pre">search</span></code> method and we provide a <a class="reference internal" href="../searching/search_domain.html#search-domain"><span class="std std-ref">search domain</span></a> as the first positional argument
+of the search method to specify our search conditions.</p>
+<div class="sphinx-tabs docutils container">
+<div class="ui top attached tabular menu sphinx-menu docutils container">
+<div class="active item sphinx-data-tab-UHl0aG9u docutils container">
+<div class="docutils container">
+<p>Python</p>
+</div>
+</div>
+</div>
+<div class="ui bottom attached sphinx-tab tab segment code-tab sphinx-data-tab-UHl0aG9u active docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fundraising Studio REST API Examples</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span>  <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="c1"># API Base URL</span>
+<span class="n">api_base_url</span> <span class="o">=</span> <span class="s2">&quot;http://demo.local.com/api/v1/frst&quot;</span>
+
+<span class="c1"># Prepare Authorization</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;bb3479ed-2193-47ac-8a41-3122344dd89e&#39;</span><span class="p">)</span>
+
+<span class="c1"># Search for groups in group folder id 30200</span>
+<span class="hll"><span class="n">search_domain</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;zgruppe_id&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="mi">30200</span><span class="p">)]</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.zgruppedetail/call/search&#39;</span><span class="p">,</span>
+</span><span class="hll">                          <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                          <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">search_domain</span><span class="p">]},</span>
+</span><span class="hll">                          <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+<span class="c1"># Returns list of frst.zgruppe ids:</span>
+<span class="c1"># print(response.content)</span>
+<span class="c1"># &gt;&gt;&gt; b&#39;[30104, 30208, 30221]&#39;</span>
+
+<span class="c1"># Parse the JSON response into an object</span>
+<span class="n">group_id_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+<span class="c1"># Cycle all IDs and request the full object</span>
+<span class="k">for</span> <span class="n">group_id</span> <span class="ow">in</span> <span class="n">group_id_list</span><span class="p">:</span>
+<span class="hll">    <span class="c1"># Request the group with the current ID</span>
+</span><span class="hll">    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.zgruppedetail/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">group_id</span><span class="p">,</span>
+</span><span class="hll">                            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                            <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+    <span class="c1"># Parse the response into an object</span>
+    <span class="n">group</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+    <span class="c1"># Print the name of the group</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">group</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">group</span><span class="p">[</span><span class="s2">&quot;gruppe_lang&quot;</span><span class="p">]))</span>
+
+<span class="c1"># The loop prints the group folders, for example:</span>
+<span class="c1"># &gt;&gt;&gt; 30104: Newsletter</span>
+<span class="c1"># &gt;&gt;&gt; 30208: Kinder-Newsletter</span>
+<span class="c1"># &gt;&gt;&gt; 30221: Notfall-Newsletter</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="create-email-groups">
+<h2>Create email groups<a class="headerlink" href="#create-email-groups" title="Permalink to this headline">¶</a></h2>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>Implement this in your management backend and simply cache the data locally.</p>
+</div>
+<p>You first need the ID of a group folder (<code class="docutils literal notranslate"><span class="pre">frst.zgruppe</span></code>) with <code class="docutils literal notranslate"><span class="pre">tabellentyp_id</span></code> of <code class="docutils literal notranslate"><span class="pre">100110</span></code>.
+See <a class="reference internal" href="#search-for-email-group-folders">Search for email group folders</a> on how to obtain possible values.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can only create <code class="docutils literal notranslate"><span class="pre">frst.zgruppedetail</span></code>. Group folders (<code class="docutils literal notranslate"><span class="pre">frst.zgruppe</span></code>) are read only.</p>
+</div>
+<p>Once you have the desired <code class="docutils literal notranslate"><span class="pre">frst.zgruppe</span></code> ID, send a <code class="docutils literal notranslate"><span class="pre">POST</span></code> request for the model <code class="docutils literal notranslate"><span class="pre">frst.zgruppedetail</span></code>
+with the desired values.</p>
+<p>Use the <code class="docutils literal notranslate"><span class="pre">bestaetigung_*</span></code> fields to specify how the confirmation is handled. If you handle confirmation
+yourself, you can use <code class="docutils literal notranslate"><span class="pre">bestaetigung_erforderlich</span> <span class="pre">=</span> <span class="pre">False</span></code>. If you need <strong>Fundraising Studio</strong> to
+handle double opt in, use <code class="docutils literal notranslate"><span class="pre">True</span></code>, and specify the confirmation type via the <code class="docutils literal notranslate"><span class="pre">bestaetigung_typ</span></code> field.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">bestaetigung_erforderlich</span> <span class="pre">=</span> <span class="pre">True</span></code>, The ID value for <code class="docutils literal notranslate"><span class="pre">bestaetigung_email</span></code> must be
+requested from the organisation or DataDialog. It is not currently queryable by the API.</p>
+</div>
+<div class="sphinx-tabs docutils container">
+<div class="ui top attached tabular menu sphinx-menu docutils container">
+<div class="active item sphinx-data-tab-UHl0aG9u docutils container">
+<div class="docutils container">
+<p>Python</p>
+</div>
+</div>
+</div>
+<div class="ui bottom attached sphinx-tab tab segment code-tab sphinx-data-tab-UHl0aG9u active docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span>  <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="c1"># API Base URL</span>
+<span class="n">api_base_url</span> <span class="o">=</span> <span class="s2">&quot;http://demo.local.com/api/v1/frst&quot;</span>
+
+<span class="c1"># Prepare Authorization</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;bb3479ed-2193-47ac-8a41-3122344dd89e&#39;</span><span class="p">)</span>
+
+<span class="n">groupdetail_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;zgruppe_id&quot;</span><span class="p">:</span> <span class="mi">30200</span><span class="p">,</span>                        <span class="c1"># Newsletter</span>
+    <span class="s2">&quot;geltungsbereich&quot;</span><span class="p">:</span> <span class="s2">&quot;local&quot;</span><span class="p">,</span>                 <span class="c1"># fixed</span>
+    <span class="s2">&quot;gui_anzeigen&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>                       <span class="c1"># fixed</span>
+    <span class="s2">&quot;gruppe_lang&quot;</span><span class="p">:</span> <span class="s2">&quot;Special Newsletter Topic&quot;</span><span class="p">,</span>  <span class="c1"># Actual newsletter name</span>
+    <span class="s2">&quot;gruppe_kurz&quot;</span><span class="p">:</span> <span class="s2">&quot;Special Newsletter Topic&quot;</span><span class="p">,</span>  <span class="c1"># Same as &quot;gruppe_lang&quot;</span>
+    <span class="s2">&quot;bestaetigung_erforderlich&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>          <span class="c1"># True, if confirmation is required for this newsletter</span>
+    <span class="s2">&quot;bestaetigung_typ&quot;</span><span class="p">:</span> <span class="s2">&quot;doubleoptin&quot;</span><span class="p">,</span>          <span class="c1"># Confirmation type DOI email</span>
+    <span class="s2">&quot;bestaetigung_email&quot;</span><span class="p">:</span> <span class="mi">33</span>                    <span class="c1"># Confirmation email template ID</span>
+<span class="p">}</span>
+
+<span class="hll"><span class="c1"># Create the new newsletter group</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.zgruppedetail&#39;</span><span class="p">,</span>
+</span><span class="hll">                          <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                          <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span class="hll">                          <span class="n">json</span><span class="o">=</span><span class="n">groupdetail_data</span><span class="p">)</span>
+</span>
+<span class="n">groupdetail</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Created new newsletter ID </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">groupdetail</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">],</span> <span class="n">groupdetail</span><span class="p">[</span><span class="s2">&quot;gruppe_lang&quot;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="subscribe-to-a-newsletter">
+<h2>Subscribe to a newsletter<a class="headerlink" href="#subscribe-to-a-newsletter" title="Permalink to this headline">¶</a></h2>
+<p>Assuming a simple web form that captures <strong>first name</strong>, <strong>last name</strong> and <strong>email</strong>, subscribing to a newsletter
+consists of two <code class="docutils literal notranslate"><span class="pre">POST</span></code> requests:</p>
+<ol class="arabic simple">
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">res.partner</span></code> (be sure to include <code class="docutils literal notranslate"><span class="pre">email</span></code>)</p></li>
+<li><p>Create <code class="docutils literal notranslate"><span class="pre">frst.personemailgruppe</span></code> using the IDs from the first request</p></li>
+</ol>
+<p>See <a class="reference internal" href="#search-for-email-groups">Search for email groups</a> on how to obtain possible values for <code class="docutils literal notranslate"><span class="pre">zgruppedetail_id</span></code>. The example
+just uses a hard coded value.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The resulting subscription state depends on the referenced <code class="docutils literal notranslate"><span class="pre">frst.zgruppedetail</span></code>.
+For example, if double opt in is enabled for the group, the subscription state would
+be <code class="docutils literal notranslate"><span class="pre">approval_pending</span></code> instead of <code class="docutils literal notranslate"><span class="pre">subscribed</span></code>. Confirmation would finally result
+in the sate <code class="docutils literal notranslate"><span class="pre">approved</span></code>.</p>
+</div>
+<div class="sphinx-tabs docutils container">
+<div class="ui top attached tabular menu sphinx-menu docutils container">
+<div class="active item sphinx-data-tab-UHl0aG9u docutils container">
+<div class="docutils container">
+<p>Python</p>
+</div>
+</div>
+</div>
+<div class="ui bottom attached sphinx-tab tab segment code-tab sphinx-data-tab-UHl0aG9u active docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span>  <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="c1"># API Base URL</span>
+<span class="n">api_base_url</span> <span class="o">=</span> <span class="s2">&quot;http://demo.local.com/api/v1/frst&quot;</span>
+
+<span class="c1"># Prepare Authorization</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;bb3479ed-2193-47ac-8a41-3122344dd89e&#39;</span><span class="p">)</span>
+
+<span class="c1"># Prepare partner data, including E-Mail</span>
+<span class="n">partner_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;firstname&quot;</span><span class="p">:</span> <span class="s2">&quot;Maxime&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lastname&quot;</span><span class="p">:</span> <span class="s2">&quot;Muster&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;email&quot;</span><span class="p">:</span> <span class="s2">&quot;maxime.muster@datadialog.net&quot;</span>
+<span class="p">}</span>
+
+<span class="hll"><span class="c1"># Create the partner</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/res.partner&#39;</span><span class="p">,</span>
+</span><span class="hll">                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                        <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span class="hll">                        <span class="n">json</span><span class="o">=</span><span class="n">partner_data</span><span class="p">)</span>
+</span>
+<span class="c1"># Parse the JSON response so we can fetch ID values</span>
+<span class="n">created_partner</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">partner_id</span> <span class="o">=</span> <span class="n">created_partner</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
+<span class="n">personemail_id</span> <span class="o">=</span> <span class="n">created_partner</span><span class="p">[</span><span class="s2">&quot;main_personemail_id&quot;</span><span class="p">]</span>
+
+<span class="c1"># Prepare subscription data</span>
+<span class="n">subscription_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;partner_id&quot;</span><span class="p">:</span> <span class="n">partner_id</span><span class="p">,</span>
+    <span class="s2">&quot;frst_personemail_id&quot;</span><span class="p">:</span> <span class="n">personemail_id</span><span class="p">,</span>
+    <span class="s2">&quot;zgruppedetail_id&quot;</span><span class="p">:</span> <span class="mi">30221</span> <span class="c1"># Notfall-Newsletter</span>
+<span class="p">}</span>
+
+<span class="hll"><span class="c1"># Create the subscription by creating ``frst.personemailgruppe``</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.personemailgruppe&#39;</span><span class="p">,</span>
+</span><span class="hll">                        <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                        <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span>
+</span><span class="hll">                        <span class="n">json</span><span class="o">=</span><span class="n">subscription_data</span><span class="p">)</span>
+</span>
+<span class="n">subscription</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Subscription state: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">subscription</span><span class="p">[</span><span class="s2">&quot;state&quot;</span><span class="p">])</span>
+<span class="c1"># Example 1: &gt;&gt;&gt; Subscription state: approval_pending</span>
+<span class="c1"># Example 2: &gt;&gt;&gt; Subscription state: subscribed</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="unsubscribe-from-a-newsletter">
+<h2>Unsubscribe from a newsletter<a class="headerlink" href="#unsubscribe-from-a-newsletter" title="Permalink to this headline">¶</a></h2>
+<p>Four requests are required to unsubscribe:</p>
+<ol class="arabic simple">
+<li><p>Find partner via email address</p></li>
+<li><p>Read partner data</p></li>
+<li><p>Search for subscriptions via <code class="docutils literal notranslate"><span class="pre">main_personemail_id</span></code> from partner data</p></li>
+<li><p>Call <code class="docutils literal notranslate"><span class="pre">deactivate</span></code> and supply all subscription IDs in a single request</p></li>
+</ol>
+<div class="sphinx-tabs docutils container">
+<div class="ui top attached tabular menu sphinx-menu docutils container">
+<div class="active item sphinx-data-tab-UHl0aG9u docutils container">
+<div class="docutils container">
+<p>Python</p>
+</div>
+</div>
+</div>
+<div class="ui bottom attached sphinx-tab tab segment code-tab sphinx-data-tab-UHl0aG9u active docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span>  <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="c1"># API Base URL</span>
+<span class="n">api_base_url</span> <span class="o">=</span> <span class="s2">&quot;http://demo.local.com/api/v1/frst&quot;</span>
+
+<span class="c1"># Prepare Authorization</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="s1">&#39;demo&#39;</span><span class="p">,</span> <span class="s1">&#39;bb3479ed-2193-47ac-8a41-3122344dd89e&#39;</span><span class="p">)</span>
+
+<span class="n">email</span> <span class="o">=</span> <span class="s2">&quot;maxime.muster@datadialog.net&quot;</span>
+
+<span class="hll"><span class="c1"># Search for partners with the given email</span>
+</span><span class="hll"><span class="n">search_domain</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;email&#39;</span><span class="p">,</span> <span class="s1">&#39;=ilike&#39;</span><span class="p">,</span> <span class="n">email</span><span class="p">)]</span>
+</span><span class="hll"><span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/res.partner/call/search&#39;</span><span class="p">,</span>
+</span><span class="hll">                            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                            <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">search_domain</span><span class="p">]},</span>
+</span><span class="hll">                            <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+<span class="n">partner_id_list</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+<span class="n">partner_id</span> <span class="o">=</span> <span class="n">partner_id_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">partner_id_list</span> <span class="k">else</span> <span class="kc">None</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">partner_id</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No partner found.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+<span class="hll">    <span class="c1"># Read partner data to obtain main email address ID</span>
+</span><span class="hll">    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/res.partner/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">partner_id</span><span class="p">,</span>
+</span><span class="hll">                                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                                <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+    <span class="n">partner</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">)</span>
+    <span class="n">email_id</span> <span class="o">=</span> <span class="n">partner</span><span class="p">[</span><span class="s2">&quot;main_personemail_id&quot;</span><span class="p">]</span>
+
+<span class="hll">    <span class="c1"># Search subscriptions for the given email ID</span>
+</span><span class="hll">    <span class="n">search_domain</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;frst_personemail_id&#39;</span><span class="p">,</span> <span class="s1">&#39;=&#39;</span><span class="p">,</span> <span class="n">email_id</span><span class="p">)]</span>
+</span><span class="hll">    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.personemailgruppe/call/search&#39;</span><span class="p">,</span>
+</span><span class="hll">                                <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                                <span class="n">json</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;args&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">search_domain</span><span class="p">]},</span>
+</span><span class="hll">                                <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>
+    <span class="n">personemailgroup_id_list</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">content</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">personemailgroup_id_list</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No subscription found.&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+<span class="hll">        <span class="c1"># Deactivate all subscriptions in a single request</span>
+</span><span class="hll">        <span class="n">deactivate_data</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># Use empty dict!</span>
+</span><span class="hll">        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">api_base_url</span> <span class="o">+</span> <span class="s1">&#39;/frst.personemailgruppe/call/deactivate/</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="s2">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">personemailgroup_id_list</span><span class="p">),</span>
+</span><span class="hll">                                    <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;accept&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">},</span>
+</span><span class="hll">                                    <span class="n">json</span><span class="o">=</span><span class="n">deactivate_data</span><span class="p">,</span>
+</span><span class="hll">                                    <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+</span>        <span class="c1"># print(response.content) # Empty content if successful</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="managing_products.html" class="btn btn-neutral float-right" title="Managing products" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="managing_partner.html" class="btn btn-neutral float-left" title="Managing Partner" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Michael Karrer, Martin Kaip.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

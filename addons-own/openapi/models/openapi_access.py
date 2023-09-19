@@ -71,6 +71,18 @@ class Access(models.Model):
         help="Fields to return on reading via non one-record endpoint",
         domain="[('resource', '=', model)]",
     )
+    allowed_fields_id = fields.Many2one(
+        "ir.exports",
+        "Allowed Fields",
+        help="If set fields shown by the integration are limited to these fields!",
+        domain="[('resource', '=', model)]",
+    )
+    readonly_fields_id = fields.Many2one(
+        "ir.exports",
+        "Readonly Fields",
+        help="If set these fields are not allowed in create or update (write) routes!",
+        domain="[('resource', '=', model)]",
+    )
     create_context_ids = fields.Many2many(
         "openapi.access.create.context",
         "openapi_access_context_rel",
@@ -155,6 +167,25 @@ class Access(models.Model):
                 _('You must select at least one API method for "%s" model.')
                 % self.model
             )
+
+    @api.multi
+    @api.constrains('allowed_fields_id', 'read_one_id', 'read_many_id')
+    def constrain_allowed_fields_id(self):
+        for r in self:
+            if r.allowed_fields_id:
+                allowed_field_names = r.allowed_fields_id.export_fields.mapped('name')
+                if r.read_one_id:
+                    read_one_field_names = r.read_one_id.export_fields.mapped('name')
+                    blocked = set(read_one_field_names) - set(allowed_field_names)
+                    if blocked:
+                        raise exceptions.ValidationError(
+                            "Field(s) %s in read_one_id are not allowed by 'allowed_fields_id'" % blocked)
+                if r.read_many_id:
+                    read_many_field_names = r.read_many_id.export_fields.mapped('name')
+                    blocked = set(read_many_field_names) - set(allowed_field_names)
+                    if blocked:
+                        raise exceptions.ValidationError(
+                            "Field(s) %s in read_many_id are not allowed by 'allowed_fields_id'" % blocked)
 
     @api.multi
     def name_get(self):
@@ -294,11 +325,10 @@ class Access(models.Model):
         if self.api_public_methods or self.public_methods or self.private_methods:
             allowed_methods = []
             if self.api_public_methods:
-                allowed_methods += [
-                    m for m in self._get_method_list() if not m.startswith("_")
-                ]
-            elif self.public_methods:
-                allowed_methods += [m for m in self.public_methods.split("\n") if m]
+                if self.public_methods:
+                    allowed_methods += [m for m in self.public_methods.split("\n") if m]
+                else:
+                    allowed_methods += [m for m in self._get_method_list() if not m.startswith("_")]
             if self.private_methods:
                 allowed_methods += [m for m in self.private_methods.split("\n") if m]
 
@@ -386,29 +416,54 @@ class Access(models.Model):
 
     def get_OAS_definitions_part(self):
         related_model = self.env[self.model]
+
+        # Get fields list from linked ir.export records
         export_fields_read_one = pinguin.transform_strfields_to_dict(
             self.read_one_id.export_fields.mapped("name") or ("id",)
         )
         export_fields_read_many = pinguin.transform_strfields_to_dict(
             self.read_many_id.export_fields.mapped("name") or ("id",)
         )
+
         definitions = {}
+
+        # Append read_one fields
         definitions.update(
             pinguin.get_OAS_definitions_part(
                 related_model, export_fields_read_one, definition_postfix="read_one"
             )
         )
+
+        # Append read_many fields
         definitions.update(
             pinguin.get_OAS_definitions_part(
                 related_model, export_fields_read_many, definition_postfix="read_many"
             )
         )
+
+        # Append field definitions for create and update
         if self.api_create or self.api_update:
-            all_fields = pinguin.transform_strfields_to_dict(
-                related_model.fields_get_keys()
-            )
+
+            # Use only the allowed fields
+            if self.allowed_fields_id:
+                allowed_field_names = self.allowed_fields_id.export_fields.mapped('name')
+
+            # Use all fields of the model
+            else:
+                allowed_field_names = related_model.fields_get_keys()
+
+            # TODO: Find a way that these fields are marked as "readonly" in get_OAS_definitions_part()
+            # readonly_fields_dict = {}
+            # if self.readonly_fields_id:
+            #     export_readonly_fields = self.readonly_fields_id.export_fields.mapped('name')
+            #     readonly_fields_dict = pinguin.transform_strfields_to_dict(export_readonly_fields)
+
+            # Convert the fields list e.g. ['name','bank_ids/bank_id/id', 'bank_ids/bank_name'] ,to a dict
+            definition_fields = pinguin.transform_strfields_to_dict(allowed_field_names)
+
+            # Append the field definitions
             definitions.update(
-                pinguin.get_OAS_definitions_part(related_model, all_fields)
+                pinguin.get_OAS_definitions_part(related_model, definition_fields)
             )
 
         if self.api_public_methods or self.private_methods:
@@ -417,11 +472,8 @@ class Access(models.Model):
                     pinguin.get_definition_name(self.model, "", "patch"): {
                         "type": "object",
                         "example": {
-                            "args": [],
-                            "kwargs": {
-                                "body": "Message is posted via API by calling message_post method",
-                                "subject": "Test API",
-                            },
+                            "args": ["Add positional arguments of the called method to 'args'"],
+                            "kwargs": {"keyword_argument": "and add keyword arguments to 'kwargs'"},
                         },
                     }
                 }

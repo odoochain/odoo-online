@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    openerp.website.EditorBar = openerp.website.EditorBar.extend({
+    openerp.website.EditorBar.include({
         edit: function () {
             /**
              * website/static/src(js/website.editor.js@339
@@ -19,15 +19,22 @@
             $( "#email_template_settings" ).collapse('show');
             $( "#email_template_settings" ).addClass('in');
 
+            // Bind event to get_text_from_html button
+            // $("#get_text_from_html").on("click", function () {
+            //     console.log('so ein dreck');
+            //     $("#fso_email_text").html($('#email_body_html').text());
+            // });
+
             return this._super.apply(this, arguments);
         }
     });
 
     // another try
-    openerp.website.editor.RTELinkDialog = openerp.website.editor.RTELinkDialog.extend({
+    // console.log('RTELinkDialog BEFORE:', openerp.website.editor.RTELinkDialog);
+    openerp.website.editor.RTELinkDialog.include({
 
         bind_data: function () {
-            // console.log('bind_data()');
+            console.log('bind_data()');
 
             var classes = null;
             classes = this.element && this.element.getAttribute("class") || '';
@@ -48,7 +55,7 @@
         },
 
         make_link: function (url, new_window, label, classes) {
-            // console.log('make_link(): ' + classes);
+            console.log('make_link(): ' + classes);
             classes = classes.replace(/undefined/g, '') || '';
             classes = classes.replace(/\s{2,}/g, ' ').trim();
 
@@ -69,10 +76,19 @@
             }
 
             classes = classes.replace(/\s{2,}/g, ' ').trim();
+
+            if (!(classes && classes.length)) {
+                // Base class is coded to ignore empty classes.
+                // To trick the base class, an array with a null
+                // element is sent instead of a string.
+                classes = [ null ];
+            }
             // console.log('make_link() after: ' + classes);
             return this._super(url, new_window, label, classes);
         },
 
-    })
+    });
+    // console.log('RTELinkDialog AFTER:', openerp.website.editor.RTELinkDialog);
+
 
 })();

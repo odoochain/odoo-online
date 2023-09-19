@@ -49,12 +49,15 @@ TODO:
         #'fso_base',
         # To use the jquery validation and other tools
         'fso_base_website',
+        'website_login_fs_ptoken',
     ],
     'data': [
+        'data/run_on_install_update.xml',
+        # 'data/form_comment_mail_message_subtype.xml',
         'security/fso_forms_usergroup.xml',
         'security/ir.model.access.csv',
-        'views/fson_form.xml',
         'views/fson_form_field.xml',
+        'views/fson_form.xml',
         'views/templates.xml',
         'views/fsonline_menu.xml',
     ],
